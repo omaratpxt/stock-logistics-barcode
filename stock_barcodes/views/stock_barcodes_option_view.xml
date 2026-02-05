@@ -27,7 +27,7 @@
                             <field name="show_pending_moves" />
                             <field
                                 name="source_pending_moves"
-                                attrs="{'invisible': [('show_pending_moves', '=', False), ('barcode_guided_mode', '=', False)]}"
+                                invisible="not show_pending_moves and not barcode_guided_mode"
                             />
                             <field name="group_key_for_todo_records" />
                             <field name="location_field_to_sort" />
@@ -53,7 +53,7 @@
                     </group>
                     <separator string="Steps to scan" />
                     <field name="option_ids">
-                        <tree editable="bottom">
+                        <list editable="bottom">
                             <field name="step" />
                             <field name="sequence" widget="handle" />
                             <field name="name" />
@@ -61,22 +61,22 @@
                             <field name="filled_default" />
                             <field
                                 name="forced"
-                                attrs="{'column_invisible': [('parent.barcode_guided_mode', '=', False)]}"
+                                column_invisible="not parent.barcode_guided_mode"
                             />
                             <field name="to_scan" />
                             <field name="required" />
                             <field name="clean_after_done" />
-                        </tree>
+                        </list>
                     </field>
                 </sheet>
             </form>
         </field>
     </record>
     <record id="view_stock_barcodes_option_tree" model="ir.ui.view">
-        <field name="name">stock.barcodes.option.tree</field>
+        <field name="name">stock.barcodes.option.list</field>
         <field name="model">stock.barcodes.option</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <list editable="bottom">
                 <field name="sequence" />
                 <field name="name" />
                 <field
@@ -89,18 +89,18 @@
                 <field name="to_scan" />
                 <field name="required" />
                 <field name="clean_after_done" />
-            </tree>
+            </list>
         </field>
     </record>
     <record model="ir.actions.act_window" id="action_stock_barcodes_option">
         <field name="res_model">stock.barcodes.option</field>
         <field name="name">Barcodes options</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">list</field>
     </record>
     <record model="ir.actions.act_window" id="action_stock_barcodes_option_group">
         <field name="res_model">stock.barcodes.option.group</field>
         <field name="name">Barcodes options groups</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <menuitem
         id="menu_action_stock_barcodes_option_group"

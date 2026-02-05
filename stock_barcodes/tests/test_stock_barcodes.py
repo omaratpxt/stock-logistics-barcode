@@ -38,19 +38,13 @@ class TestStockBarcodes(TestCommonStockBarcodes):
         self.wiz_scan.action_show_step()
         self.action_barcode_scanned(self.wiz_scan, "5420008510489")
         self.assertEqual(self.wiz_scan.product_id, self.product_tracking)
-        self.assertEqual(self.wiz_scan.product_qty, 5.0)
-        self.assertEqual(
-            self.wiz_scan.packaging_id, self.product_tracking.packaging_ids
-        )
+        self.assertEqual(self.wiz_scan.product_qty, 10)
+        self.assertEqual(self.wiz_scan.product_uom_id, self.product_tracking.uom_ids[0])
 
         # Manual entry
         self.wiz_scan.manual_entry = True
         self.wiz_scan.action_clean_values()
         self.action_barcode_scanned(self.wiz_scan, "5420008510489")
-        self.assertEqual(self.wiz_scan.packaging_qty, 1.0)
-        self.wiz_scan.packaging_qty = 3.0
-        self.wiz_scan.onchange_packaging_qty()
-        self.assertEqual(self.wiz_scan.product_qty, 15.0)
         self.wiz_scan.manual_entry = False
 
     def test_wizard_scan_lot(self):
@@ -114,7 +108,7 @@ class TestStockBarcodes(TestCommonStockBarcodes):
 
         self.assertEqual(self.barcode_action_invalid._count_elements(), 0)
         self.barcode_action_valid.context = "{'search_default_code': 1}"
-        self.assertEqual(self.barcode_action_valid._count_elements(), 6)
+        self.assertEqual(self.barcode_action_valid._count_elements(), 2)
         field_value_name = (
             self.barcode_action_valid.context.strip("{}").split(",")[0].split(":")
         )

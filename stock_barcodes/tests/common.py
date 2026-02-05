@@ -9,17 +9,16 @@ class TestCommonStockBarcodes(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        # Active group_stock_packaging and group_production_lot for user
-        group_stock_packaging = cls.env.ref("product.group_stock_packaging")
+        # Active uom.group_uom and group_production_lot for user
+        group_uom = cls.env.ref("uom.group_uom")
         group_production_lot = cls.env.ref("stock.group_production_lot")
-        cls.env.user.groups_id = [
-            (4, group_stock_packaging.id),
+        cls.env.user.group_ids = [
+            (4, group_uom.id),
             (4, group_production_lot.id),
         ]
         # models
         cls.StockLocation = cls.env["stock.location"]
         cls.Product = cls.env["product.product"]
-        cls.ProductPackaging = cls.env["product.packaging"]
         cls.WizScanReadPicking = cls.env["wiz.stock.barcodes.read.picking"]
         cls.WizScanReadInventory = cls.env["wiz.stock.barcodes.read.inventory"]
         cls.WizCandidatePicking = cls.env["wiz.candidate.picking"]
@@ -57,35 +56,53 @@ class TestCommonStockBarcodes(TransactionCase):
         cls.product_wo_tracking = cls.Product.create(
             {
                 "name": "Product test wo lot tracking",
-                "type": "product",
+                "type": "consu",
                 "tracking": "none",
                 "barcode": "8480000723208",
-                "packaging_ids": [
+                "uom_ids": [
                     (
+                        6,
                         0,
-                        0,
-                        {
-                            "name": "Box 10 Units",
-                            "qty": 10.0,
-                            "barcode": "5099206074439",
-                        },
+                        [cls.env.ref("uom.product_uom_pack_6").id],
                     )
                 ],
+            }
+        )
+        cls.product_uom_1 = cls.env["product.uom"].create(
+            {
+                "product_id": cls.product_wo_tracking.id,
+                "uom_id": cls.env.ref("uom.product_uom_pack_6").id,
+                "barcode": "5099206074439",
+            }
+        )
+        cls.uom_pack_10 = cls.env["uom.uom"].create(
+            {
+                "name": "Pack of 10",
+                "relative_factor": 10,
+                "relative_uom_id": cls.env.ref("uom.product_uom_unit").id,
             }
         )
         cls.product_tracking = cls.Product.create(
             {
                 "name": "Product test with lot tracking",
-                "type": "product",
+                "type": "consu",
                 "tracking": "lot",
                 "barcode": "8433281006850",
-                "packaging_ids": [
+                "is_storable": True,
+                "uom_ids": [
                     (
+                        6,
                         0,
-                        0,
-                        {"name": "Box 5 Units", "qty": 5.0, "barcode": "5420008510489"},
+                        [cls.uom_pack_10.id],
                     )
                 ],
+            }
+        )
+        cls.product_uom_2 = cls.env["product.uom"].create(
+            {
+                "product_id": cls.product_tracking.id,
+                "uom_id": cls.uom_pack_10.id,
+                "barcode": "5420008510489",
             }
         )
         cls.lot_1 = cls.StockProductionLot.create(
@@ -126,6 +143,31 @@ class TestCommonStockBarcodes(TransactionCase):
         cls.barcode_action_invalid = cls.StockBarcodeAction.create(
             {
                 "name": "Barcode action valid",
+            }
+        )
+
+        # Category
+        cls.partner_category = cls.env["res.partner.category"].create(
+            {
+                "name": "Desk Manufacturers",
+                "color": 10,
+            }
+        )
+        # res.partner
+        cls.partner_deco_addict = cls.env["res.partner"].create(
+            {
+                "name": "Deco Addict",
+                "category_id": [(6, 0, [cls.partner_category.id])],
+                "is_company": True,
+                "street": "77 Santa Barbara Rd",
+                "city": "Pleasant Hill",
+                "state_id": cls.env.ref("base.state_us_5").id,
+                "zip": "94523",
+                "country_id": cls.env.ref("base.us").id,
+                "email": "deco_addict@yourcompany.example.com",
+                "phone": "(603)-996-3829",
+                "website": "http://www.deco-addict.com",
+                "vat": "US12345673",
             }
         )
 

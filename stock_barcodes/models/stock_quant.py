@@ -10,7 +10,7 @@ class StockQuant(models.Model):
     _inherit = ["stock.quant", "barcodes.barcode_events_mixin"]
 
     def action_barcode_inventory_quant_unlink(self):
-        self.with_context(inventory_mode=True).action_set_inventory_quantity_to_zero()
+        self.with_context(inventory_mode=True).action_set_inventory_quantity_zero()
         context = dict(self.env.context)
         params = context.get("params", {})
         res_model = params.get("model", False)
@@ -70,8 +70,8 @@ class StockQuant(models.Model):
         self.write({"inventory_quantity": self.inventory_quantity + 1})
         self.enable_current_operations()
 
-    def action_apply_inventory(self):
-        res = super().action_apply_inventory()
+    def action_apply_inventory(self, date=None):
+        res = super().action_apply_inventory(date=date)
         self.send_bus_done(
             "stock_barcodes_scan",
             "actions_barcode",

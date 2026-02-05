@@ -465,13 +465,13 @@
         />
     </record>
     <record
-        id="stock_barcodes_option_packaging_id_inventory"
+        id="stock_barcodes_option_product_uom_id_inventory"
         model="stock.barcodes.option"
     >
-        <field name="name">Packaging</field>
+        <field name="name">Unit of Barcode</field>
         <field name="step">2</field>
         <field name="sequence">10</field>
-        <field name="field_name">packaging_id</field>
+        <field name="field_name">product_uom_id</field>
         <field name="filled_default">False</field>
         <field name="forced">False</field>
         <field name="to_scan">True</field>
@@ -562,13 +562,13 @@
         />
     </record>
     <record
-        id="stock_barcodes_option_packaging_id_operation"
+        id="stock_barcodes_option_product_uom_id_operation"
         model="stock.barcodes.option"
     >
-        <field name="name">Packaging</field>
+        <field name="name">Unit of Barcode</field>
         <field name="step">2</field>
         <field name="sequence">10</field>
-        <field name="field_name">packaging_id</field>
+        <field name="field_name">product_uom_id</field>
         <field name="filled_default">False</field>
         <field name="forced">False</field>
         <field name="to_scan">True</field>

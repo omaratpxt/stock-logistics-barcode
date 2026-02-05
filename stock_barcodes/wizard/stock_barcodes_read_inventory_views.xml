@@ -21,7 +21,7 @@
                     <field
                         name="package_id"
                         options="{'no_create': True}"
-                        attrs="{'readonly': [('manual_entry', '=', False)]}"
+                        readonly="not manual_entry"
                         force_save="1"
                         style="width:85%"
                         class="h5"
@@ -35,7 +35,7 @@
             <group name="scan_fields" position="after">
                 <group
                     string="Inventory quants"
-                    attrs="{'invisible': [('inventory_quant_ids', '=', [])]}"
+                    invisible="not inventory_quant_ids"
                     col="2"
                     class="px-3"
                 >
@@ -54,8 +54,8 @@
                             <field name="inventory_quantity" />
                             <field name="product_uom_id" />
                             <templates>
-                                <t t-name="kanban-box">
-                                    <div t-on-click="onCustomGlobalClick">
+                                <t t-name="card" class="row">
+                                    <div class="oe_kanban_global_click">
                                         <div class="row w-auto">
                                             <div class="col-8 col-md-10">
                                                 <field name="product_id" class="h2" />
@@ -63,25 +63,22 @@
                                             <div
                                                 class="col-4 col-md-2 d-flex justify-content-end align-items-center"
                                             >
-                                                <img
-                                                    t-att-src="kanban_image('product.product', 'image_128', record.product_id.raw_value)"
-                                                    role="img"
-                                                    t-att-title="record.product_id.value"
-                                                    height="40"
-                                                    width="40"
-                                                    t-att-alt="record.product_id.value"
-                                                />
+                                                <div style="width: 40px; height: 40px;">
+                                                    <field
+                                                        class="h-100 w-100"
+                                                        name="product_id"
+                                                        widget="image"
+                                                        options="{'preview_image': 'image_128', 'img_class': 'object-fit-contain w-100'}"
+                                                    />
+                                                </div>
                                                 <button
                                                     name="action_barcode_inventory_quant_edit"
                                                     type="object"
                                                     class="btn mt0"
                                                     context="{'wiz_barcode_id': parent.id}"
-                                                >
-                                                    <i
-                                                        class="fa fa-pencil"
-                                                        title="Edit inventory quantity"
-                                                    />
-                                                </button>
+                                                    icon="fa-pencil"
+                                                    title="Edit inventory quantity"
+                                                />
                                             </div>
                                         </div>
                                         <div class="row">
@@ -109,12 +106,9 @@
                                                     type="object"
                                                     class="btn mt0"
                                                     context="{'wiz_barcode_id': parent.id}"
-                                                >
-                                                    <i
-                                                        class="fa fa-trash"
-                                                        title="Reset inventory quantity"
-                                                    />
-                                                </button>
+                                                    icon="fa-trash"
+                                                    title="Reset inventory quant"
+                                                />
                                             </div>
                                         </div>
                                         <div
@@ -158,7 +152,8 @@
                     type="object"
                     title="Read items"
                     icon="fa-eye fa-2x"
-                    attrs="{'invisible': [('display_read_quant', '=', True)]}"
+                    invisible="display_read_quant"
+                    class="rounded-0 btn btn-secondary"
                 />
 
                 <button
@@ -166,7 +161,8 @@
                     type="object"
                     title="Read items"
                     icon="fa-eye-slash fa-2x"
-                    attrs="{'invisible': [('display_read_quant', '=', False)]}"
+                    invisible="not display_read_quant"
+                    class="rounded-0 btn btn-secondary"
                 />
             </xpath>
             <button name="action_clean_values" position="before">
@@ -175,7 +171,7 @@
                     type="object"
                     icon="fa-check fa-2x"
                     class="btn-primary w-100 oe_kanban_action_button btn-sm  d-flex justify-content-center align-items-center fs-1"
-                    attrs="{'invisible': ['|', '|',('display_menu', '=', True), ('inventory_quant_ids', '=', []), ('display_read_quant', '=', False)]}"
+                    invisible="display_menu or not inventory_quant_ids or not display_read_quant"
                     data-hotkey="7"
                     groups="stock.group_stock_manager"
                 >

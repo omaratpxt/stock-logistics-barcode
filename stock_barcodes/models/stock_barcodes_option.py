@@ -60,7 +60,8 @@ class StockBarcodesOptionGroup(models.Model):
         "the scanned lot"
     )
     ignore_quant_location = fields.Boolean(
-        help="If it is checked, quant location will be ignored when reading lot/package",
+        help="If checked, the location of the stock will be ignored when "
+        "scanning a lot or package.",
     )
     group_key_for_todo_records = fields.Char(
         help="You can establish a list of fields that will act as a grouping "
@@ -82,11 +83,12 @@ class StockBarcodesOptionGroup(models.Model):
         help="If checked the picking detailed operations are displayed",
     )
     keep_screen_values = fields.Boolean(
-        help="If checked the wizard values are kept until the pending move is completed",
+        help="If checked, the wizard values are kept "
+        "until the pending move is completed.",
     )
     accumulate_read_quantity = fields.Boolean(
-        help="If checked quantity will be accumulated to the existing record instead of "
-        "overwrite it with the new quantity value",
+        help="If checked, the quantity will be accumulated to the existing record "
+        "instead of overwriting it with the new quantity value.",
     )
     display_notification = fields.Boolean(
         string="Display Odoo notifications",

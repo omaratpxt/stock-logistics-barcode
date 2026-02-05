@@ -1,4 +1,3 @@
-/** @odoo-module **/
 import {_t} from "@web/core/l10n/translation";
 import {browser} from "@web/core/browser/browser";
 import {markup} from "@odoo/owl";
@@ -21,31 +20,30 @@ export class StockBarcodesMainMenu extends Component {
             this.barcodeActions = await this.getBarcodeActions();
         });
 
-        const handleNotification = ({detail: notifications}) => {
-            if (notifications && notifications.length > 0) {
-                notifications.forEach((notif) => {
-                    const {payload, type} = notif;
-                    if (type === "actions_main_menu_barcode") {
-                        if (payload.action_ok && payload.action) {
-                            this.actionService.doAction(payload.action);
-                        } else {
-                            notification.add(
-                                _t("No action found with barcode: " + payload.barcode),
-                                {
-                                    type: "danger",
-                                }
-                            );
-                        }
+        const handleActionMainMenuBarcode = (payload) => {
+            if (payload.action_ok && payload.action) {
+                this.actionService.doAction(payload.action);
+            } else {
+                notification.add(
+                    _t("No action found with barcode: " + payload.barcode),
+                    {
+                        type: "danger",
                     }
-                });
+                );
             }
         };
         useEffect(() => {
             busService.addChannel("stock_barcodes_main_menu");
-            busService.addEventListener("notification", handleNotification);
+            busService.subscribe(
+                "actions_main_menu_barcode",
+                handleActionMainMenuBarcode
+            );
             return () => {
+                busService.unsubscribe(
+                    "actions_main_menu_barcode",
+                    handleActionMainMenuBarcode
+                );
                 busService.deleteChannel("stock_barcodes_main_menu");
-                busService.removeEventListener("notification", handleNotification);
             };
         });
     }

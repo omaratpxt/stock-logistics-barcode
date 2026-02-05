@@ -1,16 +1,17 @@
 # Copyright 2023 Tecnativa - Sergio Teruel
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
-from odoo import _, api, fields, models
+from odoo import api, fields, models
+from odoo.fields import Domain
 
 
 class WizStockBarcodesReadInventory(models.TransientModel):
     _name = "wiz.stock.barcodes.read.inventory"
     _inherit = "wiz.stock.barcodes.read"
     _description = "Wizard to read barcode on inventory"
-    _allowed_product_types = ["product"]
+    _allowed_product_types = ["consu"]
 
     # Overwrite is needed to take into account new domain values
-    product_id = fields.Many2one(domain=[("type", "in", _allowed_product_types)])
+    product_id = fields.Many2one(domain=Domain("type", "in", _allowed_product_types))
     inventory_product_qty = fields.Float(
         string="Inventory quantities", digits="Product Unit of Measure", readonly=True
     )
@@ -34,23 +35,21 @@ class WizStockBarcodesReadInventory(models.TransientModel):
     def _compute_inventory_quant_ids(self):
         for wiz in self:
             domain = [
-                ("user_id", "=", self.env.user.id),
-                ("inventory_date", "<=", fields.Date.context_today(self)),
+                Domain("user_id", "=", self.env.user.id),
+                Domain("inventory_date", "<=", fields.Date.context_today(self)),
             ]
             if wiz.display_read_quant:
-                domain.append(("inventory_quantity_set", "=", True))
+                domain.append(Domain("inventory_quantity_set", "=", True))
                 order = "write_date DESC"
             else:
-                domain.append(("inventory_quantity_set", "=", False))
+                domain.append(Domain("inventory_quantity_set", "=", False))
                 order = None
-            quants = self.env["stock.quant"].search(domain, order=order)
+            quants = self.env["stock.quant"].search(Domain.AND(domain), order=order)
             if order is None:
                 quants = quants.sorted(
                     lambda q: (
-                        q.location_id.posx,
-                        q.location_id.posy,
-                        q.location_id.posz,
                         q.location_id.name,
+                        q.location_id.id,
                     )
                 )
             wiz.inventory_quant_ids = quants
@@ -72,18 +71,20 @@ class WizStockBarcodesReadInventory(models.TransientModel):
         }
 
     def _inventory_quant_domain(self):
-        return [
-            ("user_id", "=", self.env.user.id),
-            (
-                "inventory_date",
-                "<=",
-                fields.Date.context_today(self).strftime("%Y-%m-%d"),
-            ),
-            ("product_id", "=", self.product_id.id),
-            ("location_id", "=", self.location_id.id),
-            ("lot_id", "=", self.lot_id.id),
-            ("package_id", "=", self.package_id.id),
-        ]
+        return Domain.AND(
+            [
+                Domain("user_id", "=", self.env.user.id),
+                Domain(
+                    "inventory_date",
+                    "<=",
+                    fields.Date.context_today(self).strftime("%Y-%m-%d"),
+                ),
+                Domain("product_id", "=", self.product_id.id),
+                Domain("location_id", "=", self.location_id.id),
+                Domain("lot_id", "=", self.lot_id.id),
+                Domain("package_id", "=", self.package_id.id),
+            ]
+        )
 
     def _add_inventory_quant(self):
         StockQuant = self.env["stock.quant"]
@@ -112,7 +113,9 @@ class WizStockBarcodesReadInventory(models.TransientModel):
     def _serial_tracking_message_fail(self):
         self._set_messagge_info(
             "more_match",
-            _("Inventory line with more than one unit in serial tracked product"),
+            self.env._(
+                "Inventory line with more than one unit in serial tracked product"
+            ),
         )
 
     def action_done(self):

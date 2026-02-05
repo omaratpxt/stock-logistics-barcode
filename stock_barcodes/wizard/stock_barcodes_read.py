@@ -2,7 +2,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 import logging
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
+from odoo.fields import Domain
 
 _logger = logging.getLogger(__name__)
 
@@ -15,14 +16,15 @@ class WizStockBarcodesRead(models.AbstractModel):
     _description = "Wizard to read barcode"
     # To prevent remove the record wizard until 2 days old
     _transient_max_hours = 48
-    _allowed_product_types = ["product", "consu"]
+    _allowed_product_types = ["combo", "consu"]
     _rec_name = "barcode"
 
     barcode = fields.Char()
     res_model_id = fields.Many2one(comodel_name="ir.model", index=True)
     res_id = fields.Integer(index=True)
     product_id = fields.Many2one(
-        comodel_name="product.product", domain=[("type", "in", _allowed_product_types)]
+        comodel_name="product.product",
+        domain=Domain("type", "in", _allowed_product_types),
     )
     product_uom_id = fields.Many2one(comodel_name="uom.uom")
     product_tracking = fields.Selection(related="product_id.tracking", readonly=True)
@@ -37,12 +39,15 @@ class WizStockBarcodesRead(models.AbstractModel):
     location_dest_id = fields.Many2one(
         comodel_name="stock.location", string="Location dest."
     )
-    packaging_id = fields.Many2one(comodel_name="product.packaging")
-    product_packaging_ids = fields.One2many(related="product_id.packaging_ids")
-    package_id = fields.Many2one(comodel_name="stock.quant.package")
-    result_package_id = fields.Many2one(comodel_name="stock.quant.package")
+    product_uom_ids = fields.Many2many(
+        "uom.uom", related="product_id.uom_ids", readonly=True
+    )
+    package_id = fields.Many2one(comodel_name="stock.package")
+    result_package_id = fields.Many2one(comodel_name="stock.package")
     owner_id = fields.Many2one(comodel_name="res.partner")
-    packaging_qty = fields.Float(string="Package Qty", digits="Product Unit of Measure")
+    barcode_uom_qty = fields.Float(
+        string="Unit of Barcode Qty", digits="Product Unit of Measure"
+    )
     product_qty = fields.Float(digits="Product Unit of Measure")
     manual_entry = fields.Boolean(string="Manual", help="Entry manual data")
     confirmed_moves = fields.Boolean(
@@ -106,7 +111,7 @@ class WizStockBarcodesRead(models.AbstractModel):
     @api.depends("res_id")
     def _compute_action_ids(self):
         actions = self.env["stock.barcodes.action"].search(
-            [("action_window_id", "!=", False)]
+            Domain("action_window_id", "!=", False)
         )
         self.action_ids = actions
 
@@ -137,17 +142,19 @@ class WizStockBarcodesRead(models.AbstractModel):
         for rec in self:
             rec.lot_name = rec.lot_id.name
 
-    @api.onchange("packaging_qty")
-    def onchange_packaging_qty(self):
-        if self.packaging_id:
-            self.product_qty = self.packaging_qty * self.packaging_id.qty
+    @api.onchange("barcode_uom_qty")
+    def onchange_barcode_uom_qty(self):
+        if self.product_uom_id:
+            self.product_qty = self.product_uom_id._compute_quantity(
+                self.barcode_uom_qty, self.product_id.uom_id
+            )
 
     @api.onchange(
         "product_id",
         "lot_id",
         "package_id",
         "result_package_id",
-        "packaging_qty",
+        "barcode_uom_qty",
         "product_qty",
     )
     def onchange_visible_force_done(self):
@@ -161,7 +168,7 @@ class WizStockBarcodesRead(models.AbstractModel):
         self.message_type = message_type
         # if self.barcode and self.message_type in ["more_match", "not_found"]:
         if self.barcode:
-            self.message = _(
+            self.message = self.env._(
                 "%(barcode)s (%(message)s)", barcode=self.barcode, message=message
             )
         else:
@@ -188,7 +195,7 @@ class WizStockBarcodesRead(models.AbstractModel):
                     },
                 )
             else:
-                self.message = "%s" % message
+                self.message = f"{message}"
 
     def process_barcode_location_id(self):
         location = self.env["stock.location"].search(self._barcode_domain(self.barcode))
@@ -209,11 +216,13 @@ class WizStockBarcodesRead(models.AbstractModel):
         product = self.env["product.product"].search(domain)
         if product:
             if len(product) > 1:
-                self._set_messagge_info("more_match", _("More than one product found"))
+                self._set_messagge_info(
+                    "more_match", self.env._("More than one product found")
+                )
                 return False
             elif product.type not in self._allowed_product_types:
                 self._set_messagge_info(
-                    "not_found", _("The product type is not allowed")
+                    "not_found", self.env._("The product type is not allowed")
                 )
                 return False
             self.action_product_scaned_post(product)
@@ -223,16 +232,16 @@ class WizStockBarcodesRead(models.AbstractModel):
                 and self.product_id
             ):
                 quant_domain = [
-                    ("location_id", "=", self.location_id.id),
-                    ("product_id", "=", product.id),
+                    Domain("location_id", "=", self.location_id.id),
+                    Domain("product_id", "=", product.id),
                 ]
                 if self.lot_id:
-                    quant_domain.append(("lot_id", "=", self.lot_id.id))
+                    quant_domain.append(Domain("lot_id", "=", self.lot_id.id))
                 if self.package_id:
-                    quant_domain.append(("package_id", "=", self.package_id.id))
+                    quant_domain.append(Domain("package_id", "=", self.package_id.id))
                 if self.owner_id:
-                    quant_domain.append(("owner_id", "=", self.owner_id.id))
-                quants = self.env["stock.quant"].search(quant_domain)
+                    quant_domain.append(Domain("owner_id", "=", self.owner_id.id))
+                quants = self.env["stock.quant"].search(Domain.AND(quant_domain))
                 if quants:
                     self.set_info_from_quants(quants)
             return True
@@ -240,24 +249,31 @@ class WizStockBarcodesRead(models.AbstractModel):
 
     def process_barcode_lot_id(self):
         if self.env.user.has_group("stock.group_production_lot"):
-            lot_domain = [("name", "=", self.barcode)]
+            lot_domain = Domain("name", "=", self.barcode)
             if self.product_id:
-                lot_domain.append(("product_id", "=", self.product_id.id))
+                lot_domain = Domain.AND(
+                    [lot_domain, Domain("product_id", "=", self.product_id.id)]
+                )
             lot = self.env["stock.lot"].search(lot_domain)
             if len(lot) == 1:
                 if self.option_group_id.fill_fields_from_lot:
                     quant_domain = [
-                        ("lot_id.name", "=", self.barcode),
-                        ("product_id", "=", lot.product_id.id),
-                        ("quantity", ">", 0.0),
+                        Domain("lot_id.name", "=", self.barcode),
+                        Domain("product_id", "=", lot.product_id.id),
+                        Domain("quantity", ">", 0.0),
                     ]
+
                     if self.location_id:
-                        quant_domain.append(("location_id", "=", self.location_id.id))
+                        quant_domain.append(
+                            Domain("location_id", "=", self.location_id.id)
+                        )
                     else:
-                        quant_domain.append(("location_id.usage", "=", "internal"))
+                        quant_domain.append(
+                            Domain("location_id.usage", "=", "internal")
+                        )
                     if self.owner_id:
-                        quant_domain.append(("owner_id", "=", self.owner_id.id))
-                    quants = self.env["stock.quant"].search(quant_domain)
+                        quant_domain.append(Domain("owner_id", "=", self.owner_id.id))
+                    quants = self.env["stock.quant"].search(Domain.AND(quant_domain))
                     if (
                         not self._name == "wiz.stock.barcodes.read.inventory"
                         and not quants
@@ -265,7 +281,9 @@ class WizStockBarcodesRead(models.AbstractModel):
                     ):
                         self._set_messagge_info(
                             "more_match",
-                            _("No stock available for this lot with screen values"),
+                            self.env._(
+                                "No stock available for this lot with screen values"
+                            ),
                         )
                         self.lot_id = False
                         self.lot_name = False
@@ -282,7 +300,8 @@ class WizStockBarcodesRead(models.AbstractModel):
                 return True
             elif lot:
                 self._set_messagge_info(
-                    "more_match", _("More than one lot found\nScan product before")
+                    "more_match",
+                    self.env._("More than one lot found\nScan product before"),
                 )
             elif (
                 self.product_id
@@ -298,20 +317,22 @@ class WizStockBarcodesRead(models.AbstractModel):
         if not self.env.user.has_group("stock.group_tracking_lot"):
             return False
         quant_domain = [
-            ("package_id.name", "=", self.barcode),
-            ("quantity", ">", 0.0),
+            Domain("package_id.name", "=", self.barcode),
+            Domain("quantity", ">", 0.0),
         ]
         if self.option_group_id.get_option_value("location_id", "forced"):
-            quant_domain.append(("location_id", "=", self.location_id.id))
+            quant_domain.append(Domain("location_id", "=", self.location_id.id))
         if self.owner_id:
-            quant_domain.append(("owner_id", "=", self.owner_id.id))
-        quants = self.env["stock.quant"].search(quant_domain)
+            quant_domain.append(Domain("owner_id", "=", self.owner_id.id))
+        quants = self.env["stock.quant"].search(Domain.AND(quant_domain))
         internal_quants = quants.filtered(lambda q: q.location_id.usage == "internal")
         if internal_quants:
             quants = internal_quants
         elif quants:
             self = self.with_context(ignore_quant_location=True)
-            # self._set_messagge_info("more_match", _("Package located external location"))
+            # self._set_messagge_info(
+            #   "more_match", _("Package located external location")
+            # )
         else:
             # self._set_messagge_info("more_match", _("Package not fount or empty"))
             return False
@@ -321,8 +342,7 @@ class WizStockBarcodesRead(models.AbstractModel):
     def process_barcode_result_package_id(self):
         if not self.env.user.has_group("stock.group_tracking_lot"):
             return False
-        domain = [("name", "=", self.barcode)]
-        package = self.env["stock.quant.package"].search(domain)
+        package = self.env["stock.package"].search(Domain("name", "=", self.barcode))
         if package:
             self.result_package_id = package[:1]
             return True
@@ -381,15 +401,15 @@ class WizStockBarcodesRead(models.AbstractModel):
 
     def process_barcode_packaging_id(self):
         domain = self._barcode_domain(self.barcode)
-        if self.env.user.has_group("product.group_stock_packaging"):
-            domain.append(("product_id", "!=", False))
-            packaging = self.env["product.packaging"].search(domain)
+        if self.env.user.has_group("uom.group_uom"):
+            domain = Domain.AND([domain, Domain("product_id", "!=", False)])
+            packaging = self.env["product.uom"].search(domain)
             if packaging:
                 if len(packaging) > 1:
                     self._set_messagge_info(
-                        "more_match", _("More than one package found")
+                        "more_match", self.env._("More than one package found")
                     )
-                    self.packaging_id = False
+                    self.product_uom_id = False
                     return False
                 self.action_packaging_scaned_post(packaging)
                 return True
@@ -398,10 +418,12 @@ class WizStockBarcodesRead(models.AbstractModel):
     def process_barcode(self, barcode):
         if not self:
             barcode_action = self.env["stock.barcodes.action"].search(
-                [
-                    ("action_window_id", "!=", False),
-                    ("barcode", "=", barcode),
-                ],
+                domain=Domain.AND(
+                    [
+                        Domain("action_window_id", "!=", False),
+                        Domain("barcode", "=", barcode),
+                    ]
+                ),
                 limit=1,
             )
 
@@ -415,7 +437,7 @@ class WizStockBarcodesRead(models.AbstractModel):
                 },
             )
         else:
-            self._set_messagge_info("success", _("OK"))
+            self._set_messagge_info("success", self.env._("OK"))
             options = self.option_group_id.option_ids
             barcode_found = False
             options_to_scan = options.filtered("to_scan")
@@ -429,7 +451,7 @@ class WizStockBarcodesRead(models.AbstractModel):
                 ):
                     continue
                 option_func = getattr(
-                    self, "process_barcode_%s" % option.field_name, False
+                    self, f"process_barcode_{option.field_name}", False
                 )
                 if option_func:
                     res = option_func()
@@ -444,23 +466,25 @@ class WizStockBarcodesRead(models.AbstractModel):
                 self.play_sounds(barcode_found)
                 if self.option_group_id.ignore_filled_fields:
                     self._set_messagge_info(
-                        "not_found", _("Barcode not found or field already filled")
+                        "not_found",
+                        self.env._("Barcode not found or field already filled"),
                     )
                 else:
                     self._set_messagge_info(
-                        "not_found", _("Barcode not found with this screen values")
+                        "not_found",
+                        self.env._("Barcode not found with this screen values"),
                     )
                 self.display_notification(
                     self.barcode,
                     message_type="danger",
-                    title=_("Barcode not found"),
+                    title=self.env._("Barcode not found"),
                     sticky=False,
                 )
                 return False
             if not self.check_option_required():
                 return False
             if self.is_manual_confirm or self.manual_entry:
-                self._set_messagge_info("info", _("Review and confirm"))
+                self._set_messagge_info("info", self.env._("Review and confirm"))
                 return False
             return self.action_confirm()
 
@@ -471,7 +495,7 @@ class WizStockBarcodesRead(models.AbstractModel):
             if not getattr(self, option.field_name, False):
                 if self.is_manual_qty and option.field_name in [
                     "product_qty",
-                    "packaging_qty",
+                    "barcode_uom_qty",
                 ]:
                     self._set_focus_on_qty_input("product_qty")
                 if option.field_name == "lot_id" and (
@@ -483,9 +507,9 @@ class WizStockBarcodesRead(models.AbstractModel):
                 if self._option_required_hook(option):
                     continue
                 self.display_notification(
-                    _("{name} is required").format(name=option.name),
+                    self.env._("%s is required", option.name),
                     message_type="danger",
-                    title=_("Empty field"),
+                    title=self.env._("Empty field"),
                     sticky=False,
                 )
                 self.action_show_step()
@@ -500,14 +524,14 @@ class WizStockBarcodesRead(models.AbstractModel):
         location = self.env["stock.location"].search(self._barcode_domain(barcode))
         if location:
             self.location_id = location
-            self._set_messagge_info("info", _("Waiting product"))
+            self._set_messagge_info("info", self.env._("Waiting product"))
             return True
         else:
             return False
 
     def _barcode_domain(self, barcode):
         field_name = self.env.context.get("barcode_domain_field", "barcode")
-        return [(field_name, "=", barcode)]
+        return Domain(field_name, "=", barcode)
 
     def _clean_barcode_scanned(self, barcode):
         return barcode.rstrip()
@@ -521,7 +545,7 @@ class WizStockBarcodesRead(models.AbstractModel):
 
     def check_location_contidion(self):
         if not self.location_id:
-            self._set_messagge_info("info", _("Waiting location"))
+            self._set_messagge_info("info", self.env._("Waiting location"))
             # Remove product when no location has been scanned
             self.product_id = False
             return False
@@ -529,7 +553,7 @@ class WizStockBarcodesRead(models.AbstractModel):
 
     def check_lot_contidion(self):
         if self.product_id.tracking != "none" and not self.lot_id and not self.lot_name:
-            self._set_messagge_info("info", _("Waiting lot"))
+            self._set_messagge_info("info", self.env._("Waiting lot"))
             return False
         return True
 
@@ -538,7 +562,7 @@ class WizStockBarcodesRead(models.AbstractModel):
         if not result_ok:
             return False
         if not self.product_id:
-            self._set_messagge_info("info", _("Waiting product"))
+            self._set_messagge_info("info", self.env._("Waiting product"))
             return False
         result_ok = self.check_lot_contidion()
         if not result_ok:
@@ -547,7 +571,7 @@ class WizStockBarcodesRead(models.AbstractModel):
             not self.product_qty
             and not self._name == "wiz.stock.barcodes.read.inventory"
         ):
-            self._set_messagge_info("info", _("Waiting quantities"))
+            self._set_messagge_info("info", self.env._("Waiting quantities"))
             return False
         if (
             self.option_group_id.barcode_guided_mode == "guided"
@@ -555,7 +579,7 @@ class WizStockBarcodesRead(models.AbstractModel):
         ):
             return False
         if self.manual_entry:
-            self._set_messagge_info("success", _("Manual entry OK"))
+            self._set_messagge_info("success", self.env._("Manual entry OK"))
         return True
 
     def _check_guided_values(self):
@@ -563,7 +587,7 @@ class WizStockBarcodesRead(models.AbstractModel):
             self.product_id != self.guided_product_id
             and self.option_group_id.get_option_value("product_id", "forced")
         ):
-            self._set_messagge_info("more_match", _("Wrong product"))
+            self._set_messagge_info("more_match", self.env._("Wrong product"))
             self.product_qty = 0.0
             return False
         if (
@@ -571,19 +595,19 @@ class WizStockBarcodesRead(models.AbstractModel):
             and self.lot_id != self.guided_lot_id
             and self.option_group_id.get_option_value("lot_id", "forced")
         ):
-            self._set_messagge_info("more_match", _("Wrong lot"))
+            self._set_messagge_info("more_match", self.env._("Wrong lot"))
             return False
         if (
             self.location_id != self.guided_location_id
             and self.option_group_id.get_option_value("location_id", "forced")
         ):
-            self._set_messagge_info("more_match", _("Wrong location"))
+            self._set_messagge_info("more_match", self.env._("Wrong location"))
             return False
         if (
             self.location_dest_id != self.guided_location_dest_id
             and self.option_group_id.get_option_value("location_dest_id", "forced")
         ):
-            self._set_messagge_info("more_match", _("Wrong location dest"))
+            self._set_messagge_info("more_match", self.env._("Wrong location dest"))
             return False
         return True
 
@@ -598,7 +622,7 @@ class WizStockBarcodesRead(models.AbstractModel):
         if self.product_qty > limit_product_qty:
             # HACK: Some times users scan a barcode into input element.
             # At this time, to prevent this we check that the quantity be realistic.
-            self._set_messagge_info("more_match", _("The quantity is huge"))
+            self._set_messagge_info("more_match", self.env._("The quantity is huge"))
             return False
         if not self.check_done_conditions():
             return False
@@ -617,7 +641,7 @@ class WizStockBarcodesRead(models.AbstractModel):
         self.set_product_qty()
 
     def action_packaging_scaned_post(self, packaging):
-        self.packaging_id = packaging
+        self.product_uom_id = packaging.uom_id
         if (
             self.product_id != packaging.product_id
             and self.lot_id.product_id != packaging.product_id
@@ -640,11 +664,13 @@ class WizStockBarcodesRead(models.AbstractModel):
             or self.option_group_id.get_option_value("product_qty", "filled_default")
         ):
             return
-        elif self.packaging_id:
-            self.packaging_qty = 1.0
-            self.product_qty = self.packaging_id.qty * self.packaging_qty
+        elif self.product_uom_id:
+            self.barcode_uom_qty = 1.0
+            self.product_qty = self.product_uom_id._compute_quantity(
+                self.barcode_uom_qty, self.product_id.uom_id
+            )
         else:
-            self.packaging_qty = 0.0
+            self.barcode_uom_qty = 0.0
             self.product_qty = 1.0
 
     def action_clean_lot(self):
@@ -662,7 +688,7 @@ class WizStockBarcodesRead(models.AbstractModel):
         self.action_show_step()
 
     def action_create_package(self):
-        self.result_package_id = self.env["stock.quant.package"].create({})
+        self.result_package_id = self.env["stock.package"].create({})
 
     def action_clean_values(self):
         options = self.option_group_id.option_ids
@@ -676,7 +702,7 @@ class WizStockBarcodesRead(models.AbstractModel):
                 setattr(self, option.field_name, False)
         self.action_show_step()
         self.product_qty = 0.0
-        self.packaging_qty = 0.0
+        self.barcode_uom_qty = 0.0
         self.lot_name = False
 
     def action_manual_entry(self):
@@ -684,7 +710,7 @@ class WizStockBarcodesRead(models.AbstractModel):
 
     def reset_qty(self):
         self.product_qty = 0
-        self.packaging_qty = 0
+        self.barcode_uom_qty = 0
 
     def open_actions(self):
         self.display_menu = True
@@ -748,7 +774,7 @@ class WizStockBarcodesRead(models.AbstractModel):
             lambda op: op.step == self.step and op.to_scan
         )
         self._set_messagge_info(
-            "info_page", _("Scan {}").format(", ".join(options.mapped("name")))
+            "info_page", self.env._("Scan %s", ", ".join(options.mapped("name")))
         )
 
     @api.onchange("package_id")
@@ -838,8 +864,8 @@ class WizStockBarcodesRead(models.AbstractModel):
     def _set_focus_on_qty_input(self, field_name=None):
         if field_name is None:
             field_name = "product_qty"
-        if field_name == "product_qty" and self.packaging_id:
-            field_name = "packaging_qty"
+        if field_name == "product_qty" and self.product_uom_id:
+            field_name = "barcode_uom_qty"
 
         self.send_bus_done(
             "stock_barcodes_scan",
@@ -870,10 +896,12 @@ class WizStockBarcodesRead(models.AbstractModel):
 
     def _create_new_lot(self):
         StockProductionLot = self.env["stock.lot"]
-        lot_domain = [
-            ("name", "=", self.lot_name),
-            ("product_id", "=", self.product_id.id),
-        ]
+        lot_domain = Domain.AND(
+            [
+                Domain("name", "=", self.lot_name),
+                Domain("product_id", "=", self.product_id.id),
+            ]
+        )
         new_lot = StockProductionLot.search(lot_domain)
         if not new_lot:
             new_lot = StockProductionLot.create(self._prepare_lot_vals())

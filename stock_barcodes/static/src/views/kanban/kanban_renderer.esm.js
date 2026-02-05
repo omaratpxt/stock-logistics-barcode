@@ -1,4 +1,3 @@
-/** @odoo-module */
 /* Copyright 2022 Tecnativa - Alexandre D. Díaz
  * License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). */
 
@@ -9,7 +8,7 @@ import {isAllowedBarcodeModel} from "../../utils/barcodes_models_utils.esm";
 import {patch} from "@web/core/utils/patch";
 import {useHotkey} from "@web/core/hotkeys/hotkey_hook";
 
-patch(KanbanRenderer.prototype, "stock_barcodes.KanbanRenderer", {
+patch(KanbanRenderer.prototype, {
     setup() {
         const rootRef = useRef("root");
         useHotkey(
@@ -39,34 +38,35 @@ patch(KanbanRenderer.prototype, "stock_barcodes.KanbanRenderer", {
             {area: () => rootRef.el}
         );
 
-        this._super(...arguments);
+        super.setup(...arguments);
         this.ormService = useService("orm");
         this.action = useService("action");
         const busService = useService("bus_service");
         this.enableCurrentOperation = 0;
-        const handleNotification = ({detail: notifications}) => {
-            if (notifications && notifications.length > 0) {
-                notifications.forEach((notif) => {
-                    const {payload, type} = notif;
-                    if (type === "enable_operations" && payload) {
-                        this.enableCurrentOperation = payload.id;
-                    }
-                });
+        const handleEnableOperations = (payload) => {
+            if (payload) {
+                this.enableCurrentOperation = payload.id;
             }
         };
+
         useEffect(() => {
             busService.addChannel("stock_barcodes_kanban_update");
-            busService.addEventListener("notification", handleNotification);
+            busService.subscribe("enable_operations", handleEnableOperations);
             return () => {
+                busService.unsubscribe("enable_operations", handleEnableOperations);
                 busService.deleteChannel("stock_barcodes_kanban_update");
-                busService.removeEventListener("notification", handleNotification);
             };
         });
 
         onPatched(() => {
-            $("div.oe_kanban_operations-" + this.enableCurrentOperation).removeClass(
-                "d-none"
-            );
+            if (this.enableCurrentOperation) {
+                const el = rootRef.el.querySelector(
+                    `div.oe_kanban_operations-${this.enableCurrentOperation}`
+                );
+                if (el) {
+                    el.classList.remove("d-none");
+                }
+            }
         });
 
         if (isAllowedBarcodeModel(this.props.list.resModel)) {

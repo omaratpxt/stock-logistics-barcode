@@ -18,6 +18,7 @@ div.o_kanban_stock_barcodes {
 
     button.o_stock_mobile_barcode {
         @include barcode-decoration;
+        color: #495057;
     }
 
     button.o_stock_mobile_barcode:focus {
@@ -69,7 +70,7 @@ div[name="move_line_ids"] {
             height: 50% !important;
         }
 
-        div.o_kanban_record {
+        article.o_kanban_record {
             box-shadow: rgba(0, 0, 0, 0.35) 0 5px 15px !important;
 
             i.fa-pencil,
@@ -107,8 +108,7 @@ div[name="move_line_ids"] {
 button[name="action_clean_product"],
 button[name="action_clean_lot"],
 button#btn_create_lot {
-    width: 5% !important;
-    padding: 0.9rem !important;
+    padding: 0.6rem !important;
     @include media-breakpoint-down(sm) {
         width: 95% !important;
         margin-top: 0.5em !important;

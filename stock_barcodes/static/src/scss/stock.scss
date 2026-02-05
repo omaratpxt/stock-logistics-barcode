@@ -33,6 +33,11 @@
 .oe_stock_barcordes_form {
     padding: 0 !important;
     height: 100%;
+
+    .o_form_renderer {
+        height: 100%;
+    }
+
     // Recover useless space
     div[name="_barcode_scanned"] {
         min-height: 0 !important;
@@ -58,12 +63,12 @@
         font-size: 1.5rem !important;
     }
 
-    input#location_id,
-    input#location_dest_id,
-    input#package_id,
-    input#product_id,
-    input#lot_id_1,
-    input#lot_name {
+    input[id^="location_id"],
+    input[id^="location_dest_id"],
+    input[id^="package_id"],
+    input[id^="product_id"],
+    input[id^="lot_id"],
+    input[id^="lot_name"] {
         border-radius: 0.5rem !important;
         padding: 0.375rem 0.75rem !important;
         height: 40px !important;
@@ -99,7 +104,7 @@
         margin: 0 !important;
 
         div.o-autocomplete.dropdown {
-            + a.o_dropdown_button {
+            + span.o_dropdown_button {
                 display: none !important;
             }
         }
@@ -205,11 +210,10 @@
             padding: 0 !important;
         }
 
-        div[name="picking_id"] {
-            > a.o_form_uri {
-                span {
-                    color: white !important;
-                }
+        div[name="picking_id"],
+        div[name="partner_id"] {
+            a.o_form_uri {
+                color: white !important;
             }
         }
 

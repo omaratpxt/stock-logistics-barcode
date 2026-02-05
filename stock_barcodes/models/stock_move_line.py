@@ -15,16 +15,16 @@ class StockMoveLine(models.Model):
         store=True,
     )
 
-    @api.depends("qty_done", "reserved_uom_qty")
+    @api.depends("quantity")
     def _compute_barcode_scan_state(self):
         for line in self:
-            if line.qty_done >= line.reserved_uom_qty:
+            if line.quantity:
                 line.barcode_scan_state = "done"
             else:
                 line.barcode_scan_state = "pending"
 
     def _barcodes_process_line_to_unlink(self):
-        self.qty_done = 0.0
+        self.quantity = 0.0
 
     def action_barcode_detailed_operation_unlink(self):
         for sml in self:
@@ -36,5 +36,11 @@ class StockMoveLine(models.Model):
                 self.env.context.get("wiz_barcode_id", False)
             )
             stock_move._action_assign()
+            # Remove all existing move lines and create a new one with 0 quantity
+            # to avoid issues with reservation
+            stock_move.move_line_ids.unlink()
+            self.env["stock.move.line"].create(
+                stock_move._prepare_move_line_vals(quantity=0)
+            )
             wiz_barcode.fill_todo_records()
             wiz_barcode.determine_todo_action()

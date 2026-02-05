@@ -1,6 +1,7 @@
 # Copyright 2019 Sergio Teruel <sergio.teruel@tecnativa.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).f
 from odoo import api, fields, models
+from odoo.tools import html2plaintext
 
 
 class WizCandidatePicking(models.TransientModel):
@@ -31,15 +32,6 @@ class WizCandidatePicking(models.TransientModel):
         string="Partner",
     )
     state = fields.Selection(related="picking_id.state", readonly=True)
-    date = fields.Datetime(
-        related="picking_id.date", readonly=True, string="Creation Date"
-    )
-    product_qty_reserved = fields.Float(
-        "Reserved",
-        compute="_compute_picking_quantity",
-        digits="Product Unit of Measure",
-        readonly=True,
-    )
     product_uom_qty = fields.Float(
         "Demand",
         compute="_compute_picking_quantity",
@@ -56,23 +48,18 @@ class WizCandidatePicking(models.TransientModel):
     scan_count = fields.Integer()
     is_pending = fields.Boolean(compute="_compute_is_pending")
     note = fields.Html(related="picking_id.note")
+    note_is_empty = fields.Boolean(compute="_compute_note_is_empty")
 
     @api.depends("scan_count")
     def _compute_picking_quantity(self):
         for candidate in self:
-            qty_reserved = 0
             qty_demand = 0
             qty_done = 0
-            candidate.product_qty_reserved = sum(
-                candidate.picking_id.mapped("move_ids.reserved_availability")
-            )
             for move in candidate.picking_id.move_ids:
-                qty_reserved += move.reserved_availability
                 qty_demand += move.product_uom_qty
-                qty_done += move.quantity_done
+                qty_done += move.quantity
             candidate.update(
                 {
-                    "product_qty_reserved": qty_reserved,
                     "product_uom_qty": qty_demand,
                     "product_qty_done": qty_done,
                 }
@@ -82,6 +69,17 @@ class WizCandidatePicking(models.TransientModel):
     def _compute_is_pending(self):
         for rec in self:
             rec.is_pending = bool(rec.wiz_barcode_id.pending_move_ids)
+
+    @api.depends("note")
+    def _compute_note_is_empty(self):
+        for rec in self:
+            if not rec.note:
+                rec.note_is_empty = True
+                continue
+
+            # Convert HTML → text safely
+            text = html2plaintext(rec.note).strip()
+            rec.note_is_empty = not bool(text)
 
     def _get_wizard_barcode_read(self):
         return self.env["wiz.stock.barcodes.read.picking"].browse(
@@ -124,12 +122,6 @@ class WizCandidatePicking(models.TransientModel):
     def action_validate_picking(self):
         context = dict(self.env.context)
         picking = self._get_picking_to_validate()
-        if picking._check_immediate():
-            return False, picking.with_context(
-                button_validate_picking_ids=picking.ids, operations_mode=True
-            )._action_generate_immediate_wizard(
-                show_transfers=picking._should_show_transfers()
-            )
         return (
             True,
             picking.with_context(

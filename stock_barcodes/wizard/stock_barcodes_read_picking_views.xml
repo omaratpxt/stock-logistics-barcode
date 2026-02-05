@@ -15,19 +15,26 @@
                 >
                     <field name="picking_id" />
                 </button>
-                <t t-if="partner_id">
-                    [<field
-                    name="partner_id"
-                    invisible="context.get('hide_partner', False)"
-                />]
-                </t>
+                <div
+                    invisible="not partner_id"
+                    class="d-inline-flex align-items-center gap-1"
+                >
+                    <span>[</span>
+                    <field
+                        name="partner_id"
+                        nolabel="1"
+                        class="oe_inline"
+                        invisible="context.get('hide_partner', False)"
+                    />
+                    <span>]</span>
+                </div>
                 <field name="candidate_picking_id" invisible="1" />
 
                 <button
                     name="action_unlock_picking"
                     type="object"
                     title="unlock picking"
-                    attrs="{'invisible': [('candidate_picking_id', '=', 'picking_id')]}"
+                    invisible="candidate_picking_id == picking_id"
                     class="float-end"
                 >
                     <span class="fa-stack fa-lg">
@@ -41,14 +48,14 @@
                     name="action_lock_picking"
                     type="object"
                     title="lock picking"
-                    attrs="{'invisible': [('candidate_picking_id', '!=', 'picking_id')]}"
+                    invisible="candidate_picking_id != picking_id"
                     class="fa fa-thumb-tack fa-2x float-end"
                 />
             </xpath>
             <xpath expr="//field[@name='message_type']" position="before">
                 <field
                     name="candidate_picking_ids"
-                    attrs="{'invisible': [('candidate_picking_ids', '=', [])]}"
+                    invisible="not candidate_picking_ids"
                     mode="kanban"
                     nolabel="1"
                     force_save="1"
@@ -58,20 +65,20 @@
                     <kanban>
                         <field name="name" />
                         <field name="partner_id" />
-                        <field name="date" />
+                        <field name="create_date" />
                         <field name="state" />
                         <field name="picking_id" />
                         <field name="wiz_picking_id" />
-                        <field name="product_qty_reserved" />
                         <field name="product_uom_qty" />
                         <field name="product_qty_done" />
                         <field name="scan_count" />
                         <field name="is_pending" />
                         <field name="note" />
+                        <field name="note_is_empty" invisible="1" />
                         <templates>
-                            <t t-name="kanban-box">
+                            <t t-name="card">
                                 <div
-                                    t-if="!widget.isHtmlEmpty(record.note.raw_value)"
+                                    t-if="!record.note_is_empty.raw_value"
                                     t-att-class="'oe_kanban_color_alert' + (record.is_pending.raw_value == false ? ' bg-success' : '')"
                                 >
                                     <div class="oe_kanban_details p-2">
@@ -80,14 +87,11 @@
                                             invisible="1"
                                             force_save="1"
                                         />
-                                        <div
+                                        <field
                                             class="fw-bold text-center text-danger fst-italic"
-                                        >
-                                            <t
-                                                t-out="record.note.value"
-                                                invisible="context.get('hide_note', False)"
-                                            />
-                                        </div>
+                                            name="note"
+                                            invisible="context.get('hide_note', False)"
+                                        />
                                     </div>
                                 </div>
                             </t>
@@ -98,7 +102,7 @@
                     name="todo_line_display_ids"
                     mode="kanban"
                     force_save="1"
-                    attrs="{'invisible': [('todo_line_display_ids', '=', [])]}"
+                    invisible="not todo_line_display_ids"
                 />
             </xpath>
             <field name="location_id" position="before">
@@ -119,13 +123,14 @@
                 </attribute>
             </field>
             <group name="location" position="attributes">
-                <attribute
-                    name="attrs"
-                >{'readonly': [('manual_entry', '=', False)], 'invisible': [('picking_type_code', '=', 'incoming')]}
+                <attribute name="readonly">not manual_entry
+                </attribute>
+                <attribute name="invisible">
+                picking_type_code == 'incoming'
                 </attribute>
             </group>
             <group name="location" position="after">
-                <div attrs="{'invisible': [('picking_type_code', '=', 'outgoing')]}">
+                <div invisible="picking_type_code == 'outgoing'">
                     <strong class=" d-none d-sm-block">Dest. Location</strong>
                     <span
                         class="fa fa-2x fa-share text-center d-sm-none oe_span_small_icon"
@@ -134,7 +139,7 @@
                     <field
                         name="location_dest_id"
                         options="{'no_create': True, 'no_open': True}"
-                        attrs="{'readonly': [('manual_entry', '=', False)]}"
+                        readonly="not manual_entry"
                         force_save="1"
                         nolabel="1"
                         style="width:90%"
@@ -145,14 +150,12 @@
             </group>
             <group name="scan_fields" position="attributes">
                 <!--  hide group scan_fields for extra todo lines -->
-                <attribute
-                    name="attrs"
-                >{'invisible': [('todo_line_is_extra_line', '!=', False)]}
+                <attribute name="invisible">todo_line_is_extra_line
                 </attribute>
             </group>
             <group name="scan_fields" position="after">
                 <div
-                    attrs="{'invisible': [('picking_state', '!=', 'done')]}"
+                    invisible="picking_state != 'done'"
                     class="oe_kanban_picking_done bg-dark d-flex flex-column justify-content-center align-items-center text-white"
                 >
                     <span class="fa fa-6x mb-4 fa-exclamation-triangle" />
@@ -162,7 +165,7 @@
                 </div>
                 <group
                     string="Pending moves"
-                    attrs="{'invisible': ['|', ('picking_state', '=', 'done'), ('pending_move_ids', '=', [])]}"
+                    invisible="picking_state == 'done' or not pending_move_ids"
                     col="2"
                 >
                     <field
@@ -181,10 +184,9 @@
                             <field name="qty_done" />
                             <field name="qty_done_rest" />
                             <field name="uom_id" />
-                            <field name="product_qty_reserved" />
                             <field name="picking_state" />
                             <templates>
-                                <t t-name="kanban-box">
+                                <t t-name="card">
                                     <div class="oe_kanban_global_click">
                                         <div class="row">
                                             <div class="col-8 col-md-8">
@@ -243,11 +245,11 @@
                 <group
                     string="Detailed operations"
                     col="2"
-                    attrs="{'invisible': ['|', ('move_line_ids', '=', []), ('show_detailed_operations', '=', False)]}"
+                    invisible="not move_line_ids or not show_detailed_operations"
                 >
                     <h3
                         class="mt-4 w-100 px-4"
-                        attrs="{'invisible': ['|', ('move_line_ids', '=', []), ('show_detailed_operations', '=', False)]}"
+                        invisible="not move_line_ids or not show_detailed_operations"
                     >
                         Detailed operations
                     </h3>
@@ -261,12 +263,12 @@
                     >
                         <kanban class="o_kanban_mobile">
                             <field name="product_id" />
-                            <field name="qty_done" />
+                            <field name="quantity" />
                             <field name="product_uom_id" />
                             <field name="lot_id" />
                             <field name="result_package_id" />
                             <templates>
-                                <t t-name="kanban-box">
+                                <t t-name="card">
                                     <div class="oe_kanban_global_click">
                                         <div class="row">
                                             <div class="col-8 col-md-8">
@@ -289,7 +291,7 @@
                                             <div
                                                 class="col-4 col-md-4 d-flex justify-content-end align-items-center"
                                             >
-                                                <field class="h3" name="qty_done" />
+                                                <field class="h3" name="quantity" />
                                                 <button
                                                     name="action_barcode_detailed_operation_unlink"
                                                     type="object"
@@ -317,7 +319,7 @@
                     type="object"
                     string="Range"
                     title="Assign Serial Numbers"
-                    attrs="{'invisible': [('display_assign_serial', '=', False)]}"
+                    invisible="not display_assign_serial"
                     class="btn btn-secondary btn-sm"
                 />
             </xpath>
@@ -329,7 +331,7 @@
                     type="object"
                     icon="fa-cube fa-2x"
                     title="Put in Pack"
-                    attrs="{'invisible': ['|', ('picking_state', 'in', ('draft', 'done', 'cancel')), ('display_menu', '=', True)]}"
+                    invisible="picking_state in ('draft', 'done', 'cancel') or display_menu"
                     class="btn btn-secondary w-100 oe_kanban_action_button btn-sm text-uppercase
                     d-flex justify-content-center align-items-center fs-2"
                     groups="stock.group_tracking_lot"
@@ -344,7 +346,7 @@
                     icon="fa-check fa-2x"
                     class="btn btn-secondary w-100 oe_kanban_action_button btn-sm text-uppercase
                     d-flex justify-content-center align-items-center fs-2"
-                    attrs="{'invisible': [('picking_state', 'not in', ['draft', 'assigned', 'confirmed'])]}"
+                    invisible="picking_state not in ['draft', 'assigned', 'confirmed']"
                     confirm="Are you sure to validate the picking ?"
                     data-hotkey="'shift+v'"
                 >
@@ -365,7 +367,7 @@
                     type="object"
                     title="Detailed operations"
                     icon="fa-eye fa-2x"
-                    attrs="{'invisible': ['|', ('move_line_ids', '=', []), ('show_detailed_operations', '=', True)]}"
+                    invisible="not move_line_ids or show_detailed_operations"
                 />
 
                 <button
@@ -373,7 +375,7 @@
                     type="object"
                     title="Detailed operations"
                     icon="fa-eye-slash fa-2x"
-                    attrs="{'invisible': ['|', ('move_line_ids', '=', []), ('show_detailed_operations', '=', False)]}"
+                    invisible="not move_line_ids or not show_detailed_operations"
                 />
             </xpath>
         </field>

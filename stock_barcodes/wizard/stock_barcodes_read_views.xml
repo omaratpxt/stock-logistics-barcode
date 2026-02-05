@@ -8,12 +8,9 @@
                 class="oe_stock_barcordes_form h-100"
                 js_class="stock_barcodes_form"
             >
-                <div
-                    class="d-flex flex-column h-100"
-                    attrs="{'invisible': [('display_menu', '=', True)]}"
-                >
+                <div class="d-flex flex-column h-100 " invisible="display_menu">
                     <div
-                        attrs="{'invisible': [('display_menu', '=', True)]}"
+                        invisible="display_menu"
                         class="flex-fill oe_stock_barcordes_content"
                     >
                         <div name="info" class="text-center h3 mb-2">
@@ -26,7 +23,7 @@
                                     type="object"
                                     class="ms-auto oe_kanban_action_button btn-sm"
                                     title="Open actions"
-                                    attrs="{'invisible': [('display_menu', '=', True)]}"
+                                    invisible="display_menu"
                                     data-hotkey="0"
                                 >
                                     <i class="fa fa-chevron-left fa-2x text-white" />
@@ -80,7 +77,7 @@
                                     <field
                                         name="location_id"
                                         options="{'no_create': True, 'no_open': True}"
-                                        attrs="{'readonly': [('manual_entry', '=', False)]}"
+                                        readonly="not manual_entry"
                                         force_save="1"
                                         nolabel="1"
                                         style="width:90%"
@@ -105,19 +102,17 @@
                                     <field
                                         name="package_id"
                                         options="{'no_create': True}"
-                                        attrs="{'readonly': [('manual_entry', '=', False)]}"
+                                        readonly="not manual_entry"
                                         force_save="1"
                                         class="h5 oe_inline"
                                         style="width: 35% !important"
                                     />
-                                    <span
-                                        attrs="{'invisible': [('result_package_id', '=', False)]}"
-                                    >-&gt;
+                                    <span invisible="not result_package_id">-&gt;
                                     </span>
                                     <field
                                         name="result_package_id"
                                         options="{'no_create': True, 'no_open': True}"
-                                        attrs="{'readonly': [('manual_entry', '=', False)]}"
+                                        readonly="not manual_entry"
                                         force_save="1"
                                         class="h5 oe_inline ms-1"
                                         style="width: 35% !important"
@@ -130,7 +125,7 @@
                                         name="action_keep_result_package"
                                         title="If locked keep result package"
                                         icon="fa-lock"
-                                        attrs="{'invisible': [('keep_result_package', '=', False)]}"
+                                        invisible="not keep_result_package"
                                     />
                                     <button
                                         id="btn_keep_result_package_unlock"
@@ -139,7 +134,7 @@
                                         name="action_keep_result_package"
                                         title="If locked keep result package"
                                         icon="fa-unlock"
-                                        attrs="{'invisible': [('keep_result_package', '=', True)]}"
+                                        invisible="keep_result_package"
                                     />
                                     <!-- End padlock -->
                                     <button
@@ -147,7 +142,7 @@
                                         name="action_clean_package"
                                         type="object"
                                         icon="fa-trash fa-1x"
-                                        attrs="{'invisible': [('package_id', '=', False), ('result_package_id', '=', False)]}"
+                                        invisible="not package_id and not result_package_id"
                                         title="Clean package info"
                                     />
                                     <button
@@ -170,7 +165,7 @@
                                     <field
                                         name="product_id"
                                         options="{'no_create': True, 'no_open': True}"
-                                        attrs="{'readonly': [('manual_entry', '=', False)]}"
+                                        readonly="not manual_entry"
                                         force_save="1"
                                         style="width:80%"
                                         class="h5"
@@ -181,14 +176,14 @@
                                         type="object"
                                         icon="fa-trash fa-1x"
                                         title="Clean product"
-                                        attrs="{'invisible': [('product_id', '=', False)]}"
+                                        invisible="not product_id"
                                     />
                                 </div>
                             </group>
                             <group
                                 groups="stock.group_production_lot"
                                 col="2"
-                                attrs="{'invisible': [('product_tracking', 'in', [False, 'none'])]}"
+                                invisible="not product_tracking or product_tracking == 'none'"
                             >
                                 <div class="m-0" colspan="2">
                                     <strong class="d-none d-sm-block">Lot S/N</strong>
@@ -198,7 +193,7 @@
                                     />
                                     <field
                                         name="lot_name"
-                                        attrs="{'invisible': [('create_lot', '=', False)]}"
+                                        invisible="not create_lot"
                                         style="width:60%"
                                         class="h5"
                                     />
@@ -207,7 +202,8 @@
                                         options="{'no_create': True, 'no_open': True}"
                                         domain="[('product_id', '=', product_id)]"
                                         context="{'default_product_id': product_id}"
-                                        attrs="{'readonly': [('manual_entry', '=', False)], 'invisible': [('create_lot', '!=', False)]}"
+                                        readonly="not manual_entry"
+                                        invisible="create_lot"
                                         force_save="1"
                                         class="h5"
                                     />
@@ -216,7 +212,7 @@
                                         name="action_clean_lot"
                                         type="object"
                                         icon="fa-trash fa-1x ml-2"
-                                        attrs="{'invisible': [('lot_id', '=', False), ('lot_name', '=', False)]}"
+                                        invisible="not lot_id and not lot_name"
                                         title="Clean lot"
                                         data-hotkey="G"
                                     />
@@ -228,14 +224,14 @@
                                         icon="fa-plus fa-1x"
                                         title="Create lot"
                                         context="{'default_product_id': product_id}"
-                                        attrs="{'invisible': [('create_lot', '=', False)]}"
+                                        invisible="not create_lot"
                                         help="Create new lot"
                                     />
                                 </div>
                             </group>
                             <group
                                 name="option_qty_info"
-                                attrs="{'invisible': ['|', ('product_id', '=', False),'|', ('is_manual_qty', '=', True), ('manual_entry', '=', True)]}"
+                                invisible="not product_id or is_manual_qty or manual_entry"
                                 col="2"
                             >
                                 <div class="m-0" colspan="2">
@@ -246,7 +242,7 @@
                                     />
                                     <field
                                         name="product_qty"
-                                        attrs="{'readonly': [('manual_entry', '=', False)]}"
+                                        readonly="not manual_entry"
                                         force_save="1"
                                         style="width:85%"
                                         class="h5"
@@ -255,7 +251,7 @@
                             </group>
                             <group
                                 name="option_qty"
-                                attrs="{'invisible': ['|', ('product_id', '=', False),'&amp;', ('is_manual_qty', '=', False), ('manual_entry', '=', False)]}"
+                                invisible="not product_id or (not is_manual_qty and not manual_entry)"
                                 col="2"
                             >
                                 <div
@@ -267,9 +263,7 @@
                                         class="text-center col"
                                         name="total_qty_header"
                                     >
-                                        <div
-                                            attrs="{'invisible': [('total_product_uom_qty', '=', 0.0)]}"
-                                        >
+                                        <div invisible="not total_product_uom_qty">
                                             <span>(
                                                 <field
                                                 name="total_product_qty_done"
@@ -310,7 +304,7 @@
                     </div>
                     <div
                         class="oe_stock_barcodes_bottombar d-flex"
-                        attrs="{'invisible': ['|',('display_menu', '=', True), ('enable_add_product', '=', False)]}"
+                        invisible="display_menu or not enable_add_product"
                     >
                         <field name="display_menu" invisible="1" />
                         <field name="enable_add_product" invisible="1" />
@@ -319,10 +313,7 @@
                             widget="barcode_boolean_toggle"
                             class="d-none"
                         />
-                        <div
-                            class="btn-group dropup"
-                            attrs="{'invisible': [('display_menu', '=', True)]}"
-                        />
+                        <div class="btn-group dropup" invisible="display_menu" />
 
                         <!-- HACK: To avoid inheritance crash -->
                         <button name="action_manual_entry" invisible="1" />
@@ -335,7 +326,7 @@
                             type="object"
                             data-hotkey="99"
                             invisible="0"
-                            class="d-none"
+                            class="d-none rounded-0"
                         />
 
                         <button
@@ -344,8 +335,8 @@
                             title="ADD PRODUCT"
                             icon="fa-plus fa-2x"
                             class="btn-secondary w-100 oe_kanban_action_button btn-sm text-uppercase
-                            d-flex justify-content-center align-items-center"
-                            attrs="{'invisible': ['|',('display_menu', '=', True), ('enable_add_product', '=', False)]}"
+                            d-flex justify-content-center align-items-center rounded-0"
+                            invisible="display_menu or not enable_add_product"
                             style="width: 50px"
                             data-hotkey="8"
                         >
@@ -359,7 +350,7 @@
                             title="Clean Values"
                             class="btn-warning w-100 oe_kanban_action_button btn-sm ps-3 pe-3 mx-1
                                         text-uppercase d-flex justify-content-center align-items-center"
-                            attrs="{'invisible': ['|',('display_menu', '=', True), ('manual_entry', '=', False)]}"
+                            invisible="display_menu or not manual_entry"
                             data-hotkey="7"
                         >
                             <span class="fs-1 d-none d-lg-block">Clean Values</span>
@@ -370,7 +361,7 @@
                             icon="fa-check fa-2x"
                             title="Confirm"
                             class="btn-success w-100 oe_kanban_action_button btn-sm ps-3 pe-3 text-uppercase d-flex justify-content-center align-items-center"
-                            attrs="{'invisible': ['|', '|','&amp;', ('is_manual_confirm', '=', False), ('manual_entry', '=', False), ('display_menu', '=', True), ('visible_force_done', '=', True)]}"
+                            invisible="(not is_manual_confirm and not manual_entry) or display_menu or visible_force_done"
                             data-hotkey="8"
                         >
                             <span class="fs-1 d-none d-lg-block">Confirm</span>
@@ -380,7 +371,7 @@
                             type="object"
                             icon="fa-check fa-2x"
                             title="Force done"
-                            attrs="{'invisible': [('visible_force_done', '=', False)]}"
+                            invisible="not visible_force_done"
                             class="btn-danger w-100 oe_kanban_action_button btn-sm ps-3 pe-3 text-uppercase d-flex justify-content-center align-items-center"
                             style="width: 50px"
                             data-hotkey="8"
@@ -399,23 +390,23 @@
         <field name="arch" type="xml">
             <group name="option_qty" position="before">
                 <group name="packaging" col="1">
-                    <div colspan="2" groups="product.group_stock_packaging">
-                        <field name="product_packaging_ids" invisible="1" />
+                    <div colspan="2" groups="uom.group_uom">
+                        <field name="product_uom_ids" invisible="1" />
                         <span
                             class="fa fa-archive d-sm-none oe_span_small_icon"
                             title="Source Location"
-                            attrs="{'invisible': [('product_packaging_ids', '=', [])]}"
+                            invisible="not product_uom_ids"
                         />
                         <field
-                            name="packaging_id"
+                            name="product_uom_id"
                             options="{'no_open': True, 'no_create': True}"
-                            domain="[('product_id', '=', product_id)]"
+                            domain="[('id', 'in', product_uom_ids)]"
                             force_save="1"
                             style="width: 85%"
                             class="h5"
-                            placeholder="Packaging"
+                            placeholder="Unit of Barcode"
                             nolabel="1"
-                            attrs="{'invisible': [('product_packaging_ids', '=', [])]}"
+                            invisible="not product_uom_ids"
                         />
                     </div>
                 </group>
@@ -425,16 +416,16 @@
                 position="before"
             >
                 <field
-                    name="packaging_qty"
+                    name="barcode_uom_qty"
                     force_save="1"
                     widget="numeric_step"
                     options="{'auto_select': True}"
-                    groups="product.group_stock_packaging"
-                    attrs="{'invisible': [('product_packaging_ids', '=', [])]}"
+                    groups="uom.group_uom"
+                    invisible="not product_uom_ids"
                 />
             </xpath>
             <!-- <div name="total_qty_field" position="before">
-                <div class="col text-center" groups="product.group_stock_packaging">
+                <div class="col text-center" groups="uom.group_uom">
                 </div>
             </div> -->
         </field>
@@ -458,10 +449,10 @@
         <field name="arch" type="xml">
             <form string="Barcodes manual quantities">
                 <sheet>
-                    <field name="packaging_id" invisible="1" />
+                    <field name="product_uom_id" invisible="1" />
                     <field
-                        name="packaging_qty"
-                        attrs="{'invisible': [('packaging_id', '=', False)]}"
+                        name="barcode_uom_qty"
+                        invisible="not product_uom_id"
                         force_save="1"
                         nolabel="1"
                         widget="numeric_step"

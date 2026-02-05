@@ -2,10 +2,10 @@
 <odoo>
     <!-- Actions inside the menu -->
     <record id="view_stock_barcodes_action_tree" model="ir.ui.view">
-        <field name="name">stock.barcodes.action.tree</field>
+        <field name="name">stock.barcodes.action.list</field>
         <field name="model">stock.barcodes.action</field>
         <field name="arch" type="xml">
-            <tree editable="top">
+            <list editable="top">
                 <header>
                     <button
                         string="Print barcodes"
@@ -22,14 +22,14 @@
                 <field name="active" widget="boolean_toggle" />
                 <field name="barcode" />
                 <field name="icon_class" />
-            </tree>
+            </list>
         </field>
     </record>
 
     <record model="ir.actions.act_window" id="action_stock_barcodes">
         <field name="res_model">stock.barcodes.action</field>
         <field name="name">Barcodes actions</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">list</field>
     </record>
 
     <record id="view_stock_barcodes_action_kanban" model="ir.ui.view">
@@ -50,7 +50,7 @@
                 <field name="key_char_shortcut" />
                 <field name="icon_class" />
                 <templates>
-                    <t t-name="kanban-box">
+                    <t t-name="card">
                         <div class="oe_kanban_card oe_kanban_content">
                             <t t-set="shortcut" t-value="record.key_char_shortcut" />
                             <t

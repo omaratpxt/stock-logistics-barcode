@@ -1,4 +1,3 @@
-/** @odoo-module */
 /* Copyright 2024 Akretion
 /* Copyright 2024 Tecnativa
  * License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). */
@@ -105,119 +104,142 @@ function setupView() {
         }
     };
 
-    const handleNotification = ({detail: notifications}) => {
-        if (notifications && notifications.length > 0) {
-            notifications.forEach((notif) => {
-                const {payload, type} = notif;
-                if (
-                    (this.model.root.resModel === payload.res_model) &
-                    (this.model.root.resId === payload.res_id)
-                ) {
-                    if (type === "stock_barcodes_sound") {
-                        if (payload.sound === "ko") {
-                            this.$sound_ko[0].play();
-                        } else {
-                            this.$sound_ok[0].play();
-                        }
-                    } else if (type === "stock_barcodes_focus") {
-                        requestIdleCallback(() => {
-                            const input = document.querySelector(
-                                `[name=${payload.field_name}] input`
-                            );
-                            if (input) {
-                                input.focus();
-                            }
-                        });
-                    } else if (type === "stock_barcodes_notify") {
-                        notification.add(notif.payload.message, {
-                            title: notif.payload.title,
-                            type: notif.payload.type,
-                            sticky: notif.payload.sticky,
-                        });
-                    }
-                }
+    const handleStockBarcodesSound = (payload) => {
+        if (
+            this.model.root.resModel === payload.res_model &&
+            this.model.root.resId === payload.res_id
+        ) {
+            if (payload.sound === "ko") {
+                this.sound_ko.play();
+            } else {
+                this.sound_ok.play();
+            }
+        }
+    };
 
-                if (type === "stock_barcodes_edit_manual") {
-                    if (payload.manual_entry) {
-                        this.env.bus.trigger("enableFormEditBarcode");
-                    } else if (!payload.manual_entry) {
-                        this.env.bus.trigger("disableFormEditBarcode");
-                    }
-                } else if (type === "actions_barcode") {
-                    if (payload.valid_picking) {
-                        notification.add(_t("The transfer has been validated"), {
-                            type: "success",
-                        });
-                    } else if (payload.apply_inventory) {
-                        actionService.doAction(
-                            "stock_barcodes.action_stock_barcodes_action_client"
-                        );
-                        notification.add(
-                            _t("The inventory adjustment has been validated"),
-                            {
-                                type: "success",
-                            }
-                        );
-                    }
-                } else if (type === "actions_barcode_notification") {
-                    notification.add(_t(payload.message), {
-                        type: payload.message_type,
-                        sticky: payload.sticky,
-                    });
+    const handleStockBarcodesFocus = (payload) => {
+        if (
+            this.model.root.resModel === payload.res_model &&
+            this.model.root.resId === payload.res_id
+        ) {
+            requestIdleCallback(() => {
+                const input = document.querySelector(
+                    `[name=${payload.field_name}] input`
+                );
+                if (input) {
+                    input.focus();
                 }
             });
         }
     };
 
+    const handleStockBarcodesNotify = (payload) => {
+        if (
+            this.model.root.resModel === payload.res_model &&
+            this.model.root.resId === payload.res_id
+        ) {
+            notification.add(payload.message, {
+                title: payload.title,
+                type: payload.type,
+                sticky: payload.sticky,
+            });
+        }
+    };
+
+    const handleStockBarcodesEditManual = (payload) => {
+        if (payload.manual_entry) {
+            this.env.bus.trigger("enableFormEditBarcode");
+        } else {
+            this.env.bus.trigger("disableFormEditBarcode");
+        }
+    };
+
+    const handleActionsBarcode = (payload) => {
+        if (payload.valid_picking) {
+            notification.add(_t("The transfer has been validated"), {
+                type: "success",
+            });
+        } else if (payload.apply_inventory) {
+            actionService.doAction(
+                "stock_barcodes.action_stock_barcodes_action_client"
+            );
+            notification.add(_t("The inventory adjustment has been validated"), {
+                type: "success",
+            });
+        }
+    };
+
+    const handleActionsBarcodeNotification = (payload) => {
+        notification.add(_t(payload.message), {
+            type: payload.message_type,
+            sticky: payload.sticky,
+        });
+    };
+
     useEffect(() => {
         document.body.addEventListener("keydown", handleKeys);
 
-        this.$sound_ok = $("<audio>", {
-            src: "/stock_barcodes/static/src/sounds/bell.wav",
-            preload: "auto",
-        });
-        this.$sound_ok.appendTo("body");
-        this.$sound_ko = $("<audio>", {
-            src: "/stock_barcodes/static/src/sounds/error.wav",
-            preload: "auto",
-        });
-        this.$sound_ko.appendTo("body");
+        this.sound_ok = document.createElement("audio");
+        this.sound_ok.setAttribute("src", "/stock_barcodes/static/src/sounds/bell.wav");
+        this.sound_ok.setAttribute("preload", "auto");
+        document.body.appendChild(this.sound_ok);
+
+        this.sound_ko = document.createElement("audio");
+        this.sound_ko.setAttribute(
+            "src",
+            "/stock_barcodes/static/src/sounds/error.wav"
+        );
+        this.sound_ko.setAttribute("preload", "auto");
+        document.body.appendChild(this.sound_ko);
 
         busService.addChannel("stock_barcodes_scan");
 
-        busService.addEventListener("notification", handleNotification);
+        const notificationHandlers = {
+            stock_barcodes_sound: handleStockBarcodesSound,
+            stock_barcodes_focus: handleStockBarcodesFocus,
+            stock_barcodes_notify: handleStockBarcodesNotify,
+            stock_barcodes_edit_manual: handleStockBarcodesEditManual,
+            actions_barcode: handleActionsBarcode,
+            actions_barcode_notification: handleActionsBarcodeNotification,
+        };
+
+        Object.entries(notificationHandlers).forEach(([busType, handler]) => {
+            busService.subscribe(busType, handler);
+        });
 
         return () => {
-            this.$sound_ok.remove();
-            this.$sound_ko.remove();
+            this.sound_ok.remove();
+            this.sound_ko.remove();
             document.body.removeEventListener("keydown", handleKeys);
+            Object.entries(notificationHandlers).forEach(([busType, handler]) => {
+                busService.unsubscribe(busType, handler);
+            });
             busService.deleteChannel("stock_barcodes_scan");
-            busService.removeEventListener("notification", handleNotification);
         };
     });
 }
 
-patch(KanbanController.prototype, "add hotkeys to kanban", {
+patch(KanbanController.prototype, {
     setup() {
-        this._super(...arguments);
+        super.setup(...arguments);
         if (isAllowedBarcodeModel(this.props.resModel)) {
             setupView.call(this);
         }
     },
 });
 
-patch(FormController.prototype, "add hotkeys to form", {
+patch(FormController.prototype, {
     setup() {
-        this._super(...arguments);
+        super.setup(...arguments);
         if (isAllowedBarcodeModel(this.props.resModel)) {
             setupView.call(this);
         }
     },
 });
 
-patch(ListController.prototype, "add hotkeys to list", {
+patch(ListController.prototype, {
     setup() {
-        this._super(...arguments);
+        super.setup(...arguments);
         if (isAllowedBarcodeModel(this.props.resModel)) {
             setupView.call(this);
         }

@@ -20,7 +20,6 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
 
         cls.barcode_option_group_out.barcode_guided_mode = False
         cls.barcode_option_group_in.barcode_guided_mode = False
-        cls.partner_agrolite = cls.env.ref("base.res_partner_2")
         cls.picking_type_in = cls.env.ref("stock.picking_type_in")
         cls.picking_type_in.barcode_option_group_id = cls.barcode_option_group_in
         cls.picking_type_out = cls.env.ref("stock.picking_type_out")
@@ -29,8 +28,6 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
         cls.supplier_location = cls.env.ref("stock.stock_location_suppliers")
         cls.customer_location = cls.env.ref("stock.stock_location_customers")
         cls.stock_location = cls.env.ref("stock.stock_location_stock")
-        cls.categ_unit = cls.env.ref("uom.product_uom_categ_unit")
-        cls.categ_kgm = cls.env.ref("uom.product_uom_categ_kgm")
         cls.picking_out_01 = (
             cls.env["stock.picking"]
             .with_context(planned_picking=True)
@@ -38,14 +35,13 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
                 {
                     "location_id": cls.stock_location.id,
                     "location_dest_id": cls.customer_location.id,
-                    "partner_id": cls.partner_agrolite.id,
+                    "partner_id": cls.partner_deco_addict.id,
                     "picking_type_id": cls.picking_type_out.id,
                     "move_ids": [
                         (
                             0,
                             0,
                             {
-                                "name": cls.product_tracking.name,
                                 "product_id": cls.product_tracking.id,
                                 "product_uom_qty": 3,
                                 "product_uom": cls.product_tracking.uom_id.id,
@@ -65,14 +61,13 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
                 {
                     "location_id": cls.supplier_location.id,
                     "location_dest_id": cls.stock_location.id,
-                    "partner_id": cls.partner_agrolite.id,
+                    "partner_id": cls.partner_deco_addict.id,
                     "picking_type_id": cls.picking_type_in.id,
                     "move_ids": [
                         (
                             0,
                             0,
                             {
-                                "name": cls.product_wo_tracking.name,
                                 "product_id": cls.product_wo_tracking.id,
                                 "product_uom_qty": 3,
                                 "product_uom": cls.product_wo_tracking.uom_id.id,
@@ -84,7 +79,6 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
                             0,
                             0,
                             {
-                                "name": cls.product_wo_tracking.name,
                                 "product_id": cls.product_wo_tracking.id,
                                 "product_uom_qty": 5,
                                 "product_uom": cls.product_wo_tracking.uom_id.id,
@@ -96,7 +90,6 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
                             0,
                             0,
                             {
-                                "name": cls.product_tracking.name,
                                 "product_id": cls.product_tracking.id,
                                 "product_uom_qty": 3,
                                 "product_uom": cls.product_tracking.uom_id.id,
@@ -108,7 +101,6 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
                             0,
                             0,
                             {
-                                "name": cls.product_tracking.name,
                                 "product_id": cls.product_tracking.id,
                                 "product_uom_qty": 5,
                                 "product_uom": cls.product_tracking.uom_id.id,
@@ -136,7 +128,7 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
         self.assertEqual(self.wiz_scan_picking.res_model_id, self.stock_picking_model)
         self.assertEqual(self.wiz_scan_picking.res_id, self.picking_in_01.id)
         self.assertIn(
-            "Barcode reader - %s - " % (self.picking_in_01.name),
+            f"Barcode reader - {self.picking_in_01.name} - ",
             self.wiz_scan_picking.display_name,
         )
 
@@ -145,17 +137,21 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
         wiz_scan_picking = self.wiz_scan_picking.with_context(
             force_create_move=True, no_increase_qty_done=True
         )
+        picking = self.picking_in_01.copy()
+        picking.action_confirm()
+        picking.move_ids.move_line_ids.unlink()
+
         self.action_barcode_scanned(wiz_scan_picking, "8480000723208")
-        sml = self.picking_in_01.move_line_ids.filtered(
+        sml = picking.move_line_ids.filtered(
             lambda x: x.product_id == self.product_wo_tracking
         )
-        self.assertEqual(sml.qty_done, 1.0)
+        self.assertEqual(sml.quantity, 1.0)
         # Scan product with tracking lot enable
         self.action_barcode_scanned(wiz_scan_picking, "8433281006850")
-        sml = self.picking_in_01.move_line_ids.filtered(
+        sml = picking.move_line_ids.filtered(
             lambda x: x.product_id == self.product_tracking
         )
-        self.assertEqual(sml.qty_done, 0.0)
+        self.assertEqual(sml.quantity, 0.0)
         self.assertEqual(
             self.wiz_scan_picking.message,
             "8433281006850 (Scan Product, Packaging, Lot / Serial)",
@@ -163,16 +159,16 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
         # Scan a lot. Increment quantities if scan product or other lot from
         # this product
         self.action_barcode_scanned(wiz_scan_picking, "8411822222568")
-        sml = self.picking_in_01.move_line_ids.filtered(
+        sml = picking.move_line_ids.filtered(
             lambda x: x.product_id == self.product_tracking and x.lot_id
         )
         self.assertEqual(sml.lot_id, self.lot_1)
-        self.assertEqual(sml.qty_done, 1.0)
+        self.assertEqual(sml.quantity, 1.0)
         self.action_barcode_scanned(wiz_scan_picking, "8433281006850")
         stock_move = sml.move_id
-        self.assertEqual(sum(stock_move.move_line_ids.mapped("qty_done")), 1.0)
+        self.assertEqual(sum(stock_move.move_line_ids.mapped("quantity")), 1.0)
         self.action_barcode_scanned(wiz_scan_picking, "8411822222568")
-        self.assertEqual(sum(stock_move.move_line_ids.mapped("qty_done")), 1.0)
+        self.assertEqual(sum(stock_move.move_line_ids.mapped("quantity")), 1.0)
         self.assertEqual(
             self.wiz_scan_picking.message,
             "8411822222568 (Scan Product, Packaging, Lot / Serial)",
@@ -180,7 +176,7 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
         # Scan a package
         self.action_barcode_scanned(wiz_scan_picking, "5420008510489")
         # Package of 5 product units. Already three unit exists
-        self.assertEqual(sum(stock_move.move_line_ids.mapped("qty_done")), 5.0)
+        self.assertEqual(sum(stock_move.move_line_ids.mapped("quantity")), 5.0)
 
     def test_picking_wizard_scan_product_manual_entry(self):
         wiz_scan_picking = self.wiz_scan_picking.with_context(
@@ -194,7 +190,7 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
         self.assertEqual(wiz_scan_picking.product_qty, 0.0)
         wiz_scan_picking.product_qty = 12.0
         wiz_scan_picking.action_confirm()
-        self.assertEqual(sml.qty_done, 12.0)
+        self.assertEqual(sml.quantity, 12.0)
 
     def test_barcode_from_operation(self):
         picking_out_3 = self.picking_out_01.copy()
@@ -221,12 +217,12 @@ class TestStockBarcodesPicking(TestCommonStockBarcodes):
             wiz_barcode_id=self.wiz_scan_picking.id, picking_id=self.picking_out_01.id
         )
         candidate_wiz.with_context(force_create_move=True).action_lock_picking()
-        self.assertEqual(self.picking_out_01.move_ids.quantity_done, 2)
+        self.assertEqual(self.picking_out_01.move_ids.quantity, 2)
         self.wiz_scan_picking.product_qty = 2
         self.wiz_scan_picking.with_context(
             force_create_move=True, no_increase_qty_done=True
         ).action_confirm()
-        self.assertEqual(self.picking_out_01.move_ids.quantity_done, 2)
+        self.assertEqual(self.picking_out_01.move_ids.quantity, 2)
 
         # Picking out 3 is in confirmed state, so until confirmed moves has
         # not been activated candidate pickings is 2

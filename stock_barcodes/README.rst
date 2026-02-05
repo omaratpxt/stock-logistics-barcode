@@ -55,7 +55,7 @@ Barcode interface for inventory operations
 
 Option 1: To use the barcode interface on inventory
 
-   1. Go to *Inventory > operations > Inventory Adjustments*.
+   1. Go to *Inventory > Operations > Physical Inventory*.
    2. Create new inventory with "Select products manually" option.
    3. Start inventory.
    4. Click to "Scan barcodes" smart button.

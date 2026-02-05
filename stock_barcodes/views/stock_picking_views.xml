@@ -11,7 +11,7 @@
                     icon="fa-barcode"
                     type="object"
                     help="Start barcode interface"
-                    states="confirmed,assigned"
+                    invisible="state not in ('confirmed', 'assigned')"
                 >
                     <div class="o_form_field o_stat_info">
                         <span class="o_stat_text">Scan barcodes</span>
@@ -43,12 +43,15 @@
                 <field name="default_location_src_id" invisible="1" />
                 <field name="default_location_dest_id" invisible="1" />
             </field>
-            <xpath expr="//div[hasclass('o_kanban_primary_left')]" position="inside">
+            <xpath
+                expr="//button[@name='get_action_picking_tree_ready']"
+                position="after"
+            >
                 <field name="barcode_option_group_id" invisible="1" />
                 <div
                     class="mt8"
                     t-if="['incoming', 'outgoing', 'internal'].indexOf(record.code.raw_value) &gt; -1"
-                    attrs="{'invisible': [('barcode_option_group_id', '=', False)]}"
+                    invisible="not barcode_option_group_id"
                 >
                     <button
                         name="action_barcode_scan"
@@ -62,7 +65,7 @@
                     </button>
                 </div>
             </xpath>
-            <xpath expr="//div[hasclass('o_kanban_primary_right')]" position="inside">
+            <xpath expr="//div[hasclass('stock-overview-links')]" position="inside">
                 <div
                     class="float-end mt8"
                     t-if="record.default_location_src_id.raw_value and record.default_location_dest_id.raw_value"

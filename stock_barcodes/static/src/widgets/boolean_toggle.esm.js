@@ -1,8 +1,10 @@
-/** @odoo-module */
 /* Copyright 2018-2019 Sergio Teruel <sergio.teruel@tecnativa.com>.
  * License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). */
 
-import {BooleanToggleField} from "@web/views/fields/boolean_toggle/boolean_toggle_field";
+import {
+    BooleanToggleField,
+    booleanToggleField,
+} from "@web/views/fields/boolean_toggle/boolean_toggle_field";
 import {onMounted} from "@odoo/owl";
 import {registry} from "@web/core/registry";
 import {useBus} from "@web/core/utils/hooks";
@@ -44,31 +46,47 @@ class BarcodeBooleanToggleField extends BooleanToggleField {
     enableFormEdit(newValue, editAction = false) {
         // Enable edit form
         if (this.props.name === "manual_entry" || editAction) {
-            const $form_edit = $("div.oe_stock_barcordes_content > div.scan_fields");
-            const $div_inventory_quant_ids = $("div[name='inventory_quant_ids']").find(
-                "div.o_kanban_renderer"
+            const formEdit = document.querySelector(
+                "div.oe_stock_barcordes_content > div.scan_fields"
             );
-            if ($form_edit.length > 0 && !this.show_form_scan) {
+
+            const divInventoryQuantIds = document
+                .querySelector("div[name='inventory_quant_ids']")
+                ?.querySelector("div.o_kanban_renderer");
+
+            if (formEdit && !this.show_form_scan) {
                 if (newValue) {
-                    $form_edit.removeClass("d-none");
-                    $div_inventory_quant_ids.addClass("inventory_quant_ids_with_form");
-                    $div_inventory_quant_ids.removeClass(
-                        "inventory_quant_ids_without_form"
-                    );
+                    formEdit.classList.remove("d-none");
+
+                    if (divInventoryQuantIds) {
+                        divInventoryQuantIds.classList.add(
+                            "inventory_quant_ids_with_form"
+                        );
+                        divInventoryQuantIds.classList.remove(
+                            "inventory_quant_ids_without_form"
+                        );
+                    }
                 } else {
-                    $form_edit.addClass("d-none");
-                    $div_inventory_quant_ids.removeClass(
-                        "inventory_quant_ids_with_form"
-                    );
-                    $div_inventory_quant_ids.addClass(
-                        "inventory_quant_ids_without_form"
-                    );
+                    formEdit.classList.add("d-none");
+
+                    if (divInventoryQuantIds) {
+                        divInventoryQuantIds.classList.remove(
+                            "inventory_quant_ids_with_form"
+                        );
+                        divInventoryQuantIds.classList.add(
+                            "inventory_quant_ids_without_form"
+                        );
+                    }
                 }
-            } else {
-                $div_inventory_quant_ids.addClass("inventory_quant_ids_without_form");
+            } else if (divInventoryQuantIds) {
+                divInventoryQuantIds.classList.add("inventory_quant_ids_without_form");
             }
         }
     }
 }
 
-registry.category("fields").add("barcode_boolean_toggle", BarcodeBooleanToggleField);
+export const barcodeBooleanToggleField = {
+    ...booleanToggleField,
+    component: BarcodeBooleanToggleField,
+};
+registry.category("fields").add("barcode_boolean_toggle", barcodeBooleanToggleField);
