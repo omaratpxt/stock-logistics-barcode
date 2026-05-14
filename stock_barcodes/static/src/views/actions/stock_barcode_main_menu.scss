@@ -34,7 +34,8 @@ div.stock-barcodes-main-menu {
     margin: 2rem auto !important;
     padding: 2.5rem 2rem !important;
     border-radius: 1rem !important;
-    width: min(960px, 90%) !important;
+    width: 90% !important;
+    max-width: 960px !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18) !important;
 
     @include media-breakpoint-down(sm) {
