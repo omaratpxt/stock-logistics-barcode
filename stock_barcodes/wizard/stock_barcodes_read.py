@@ -443,6 +443,17 @@ class WizStockBarcodesRead(models.AbstractModel):
             options_to_scan = options.filtered("to_scan")
             options_required = options.filtered("required")
             options_to_scan = options_to_scan.filtered(lambda op: op.step == self.step)
+            location_prefix = self.option_group_id.sudo().location_barcode_prefix
+            if location_prefix:
+                location_fields = ("location_id", "location_dest_id")
+                if barcode.startswith(location_prefix):
+                    options_to_scan = options_to_scan.filtered(
+                        lambda op: op.field_name in location_fields
+                    )
+                else:
+                    options_to_scan = options_to_scan.filtered(
+                        lambda op: op.field_name not in location_fields
+                    )
             for option in options_to_scan:
                 if (
                     self.option_group_id.ignore_filled_fields

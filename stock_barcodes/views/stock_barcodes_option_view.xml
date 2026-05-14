@@ -51,6 +51,15 @@
                             <field name="use_location_dest_putaway" />
                         </group>
                     </group>
+                    <group
+                        string="Barcode prefix routing"
+                        groups="stock.group_stock_manager"
+                    >
+                        <field
+                            name="location_barcode_prefix"
+                            placeholder="Example: LOC"
+                        />
+                    </group>
                     <separator string="Steps to scan" />
                     <field name="option_ids">
                         <list editable="bottom">

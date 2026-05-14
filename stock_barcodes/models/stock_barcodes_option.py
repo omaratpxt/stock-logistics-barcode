@@ -107,6 +107,13 @@ class StockBarcodesOptionGroup(models.Model):
         string="Do not increase qty done on each scan",
     )
     show_form_scan = fields.Boolean(default=True)
+    location_barcode_prefix = fields.Char(
+        string="Location barcode prefix",
+        groups="stock.group_stock_manager",
+        help="If set, any scanned barcode starting with this prefix is routed "
+        "to the location fields only; any other barcode skips the location "
+        "fields. Leave empty to disable prefix-based routing.",
+    )
 
     def get_option_value(self, field_name, attribute):
         option = self.option_ids.filtered(lambda op: op.field_name == field_name)[:1]
