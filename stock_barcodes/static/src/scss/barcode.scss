@@ -158,6 +158,33 @@ div.stock_barcodes_action_kanban {
     }
 }
 
+.oe_stock_barcordes_form {
+    .o_form_nosheet {
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    .scan_fields {
+        background-color: #f3f4f6 !important;
+        padding: 0.75rem !important;
+
+        div:has(> .o_barcode_field_header) {
+            background-color: rgba(255, 255, 255, 0.65);
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.875rem 1rem !important;
+            margin: 0 0 0.5rem 0 !important;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+
+            &:hover,
+            &:focus-within {
+                background-color: white;
+                border-color: #9ca3af;
+            }
+        }
+    }
+}
+
 .oe_stock_barcodes_bottombar {
     position: sticky;
     bottom: 0;
@@ -165,20 +192,20 @@ div.stock_barcodes_action_kanban {
     background: white;
     border-top: 1px solid #e5e7eb;
     box-shadow: none;
-    padding: 0.5rem;
-    gap: 0.5rem;
+    padding: 0;
+    gap: 0;
+    margin: 0;
 
     button {
-        border-radius: 0.5rem !important;
-        border-width: 1px !important;
+        border-radius: 0 !important;
+        border: none !important;
         font-size: 0.875rem !important;
         font-weight: 600 !important;
         letter-spacing: 0.02em;
-        padding: 0.625rem 1rem !important;
+        padding: 0.95rem 1rem !important;
         box-shadow: none !important;
         text-transform: none !important;
-        transition: background-color 0.15s ease, border-color 0.15s ease,
-            color 0.15s ease;
+        transition: background-color 0.15s ease, color 0.15s ease;
 
         i.fa,
         span.fa,
@@ -195,35 +222,33 @@ div.stock_barcodes_action_kanban {
         &.btn-warning {
             background-color: white !important;
             color: #374151 !important;
-            border-color: #d1d5db !important;
 
             &:hover {
-                background-color: #f9fafb !important;
-                border-color: #9ca3af !important;
+                background-color: #f3f4f6 !important;
                 color: #111827 !important;
             }
         }
 
         &.btn-success {
             background-color: #714b67 !important;
-            border-color: #714b67 !important;
             color: white !important;
 
             &:hover {
                 background-color: #5a3d52 !important;
-                border-color: #5a3d52 !important;
             }
         }
 
         &.btn-danger {
             background-color: #dc2626 !important;
-            border-color: #dc2626 !important;
             color: white !important;
 
             &:hover {
                 background-color: #b91c1c !important;
-                border-color: #b91c1c !important;
             }
+        }
+
+        &:not(:last-child) {
+            border-right: 1px solid #e5e7eb !important;
         }
     }
 }
