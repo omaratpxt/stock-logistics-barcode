@@ -131,11 +131,21 @@
             </group>
             <group name="location" position="after">
                 <div invisible="picking_type_code == 'outgoing'">
-                    <strong class=" d-none d-sm-block">Dest. Location</strong>
-                    <span
-                        class="fa fa-2x fa-share text-center d-sm-none oe_span_small_icon"
-                        title="Destination Location"
-                    />
+                    <div
+                        class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
+                    >
+                        <span
+                            class="o_barcode_field_icon o_barcode_field_icon--location-dest"
+                        >
+                            <i
+                                class="fa fa-share"
+                                title="Destination Location"
+                            />
+                        </span>
+                        <strong
+                            class="text-muted text-uppercase small mb-0"
+                        >Dest. Location</strong>
+                    </div>
                     <field
                         name="location_dest_id"
                         options="{'no_create': True, 'no_open': True}"

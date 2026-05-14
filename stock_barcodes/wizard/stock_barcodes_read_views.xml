@@ -68,12 +68,21 @@
                         <group name="scan_fields" class="bg-light scan_fields p-2">
                             <group name="location" col="1">
                                 <div class="mt-1" colspan="2">
-                                    <strong class=" d-none d-sm-block">Source Location
-                                    </strong>
-                                    <span
-                                        class="fa fa-map-marker fa-2x d-sm-none oe_span_small_icon"
-                                        title="Source Location"
-                                    />
+                                    <div
+                                        class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
+                                    >
+                                        <span
+                                            class="o_barcode_field_icon o_barcode_field_icon--location"
+                                        >
+                                            <i
+                                                class="fa fa-map-marker"
+                                                title="Source Location"
+                                            />
+                                        </span>
+                                        <strong
+                                            class="text-muted text-uppercase small mb-0"
+                                        >Source Location</strong>
+                                    </div>
                                     <field
                                         name="location_id"
                                         options="{'no_create': True, 'no_open': True}"
@@ -91,14 +100,21 @@
                                 col="2"
                             >
                                 <div class="m-0" colspan="2">
-                                    <strong
-                                        class="d-none d-sm-block"
-                                    >Source Package -&gt; Result Package
-                                    </strong>
-                                    <span
-                                        class="fa fa-cubes d-sm-none oe_span_small_icon"
-                                        title="Source Package to Result Package"
-                                    />
+                                    <div
+                                        class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
+                                    >
+                                        <span
+                                            class="o_barcode_field_icon o_barcode_field_icon--package"
+                                        >
+                                            <i
+                                                class="fa fa-cubes"
+                                                title="Source Package to Result Package"
+                                            />
+                                        </span>
+                                        <strong
+                                            class="text-muted text-uppercase small mb-0"
+                                        >Source Package → Result Package</strong>
+                                    </div>
                                     <field
                                         name="package_id"
                                         options="{'no_create': True}"
@@ -157,11 +173,21 @@
                             </group>
                             <group col="2">
                                 <div class="m-0" colspan="2">
-                                    <strong class="d-none d-sm-block">Product</strong>
-                                    <span
-                                        class="fa fa-th-list fa-2x d-sm-none oe_span_small_icon"
-                                        title="Product"
-                                    />
+                                    <div
+                                        class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
+                                    >
+                                        <span
+                                            class="o_barcode_field_icon o_barcode_field_icon--product"
+                                        >
+                                            <i
+                                                class="fa fa-cube"
+                                                title="Product"
+                                            />
+                                        </span>
+                                        <strong
+                                            class="text-muted text-uppercase small mb-0"
+                                        >Product</strong>
+                                    </div>
                                     <field
                                         name="product_id"
                                         options="{'no_create': True, 'no_open': True}"
@@ -186,11 +212,18 @@
                                 invisible="not product_tracking or product_tracking == 'none'"
                             >
                                 <div class="m-0" colspan="2">
-                                    <strong class="d-none d-sm-block">Lot S/N</strong>
-                                    <span
-                                        class="fa fa-tags fa-2x d-sm-none oe_span_small_icon"
-                                        title="Lot S/N"
-                                    />
+                                    <div
+                                        class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
+                                    >
+                                        <span
+                                            class="o_barcode_field_icon o_barcode_field_icon--lot"
+                                        >
+                                            <i class="fa fa-tags" title="Lot S/N" />
+                                        </span>
+                                        <strong
+                                            class="text-muted text-uppercase small mb-0"
+                                        >Lot S/N</strong>
+                                    </div>
                                     <field
                                         name="lot_name"
                                         invisible="not create_lot"
@@ -235,11 +268,21 @@
                                 col="2"
                             >
                                 <div class="m-0" colspan="2">
-                                    <strong class="d-none d-sm-block">Total Qty</strong>
-                                    <span
-                                        class="fa fa-hashtag d-sm-none oe_span_small_icon"
-                                        title="Total Quantity"
-                                    />
+                                    <div
+                                        class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
+                                    >
+                                        <span
+                                            class="o_barcode_field_icon o_barcode_field_icon--qty"
+                                        >
+                                            <i
+                                                class="fa fa-hashtag"
+                                                title="Total Quantity"
+                                            />
+                                        </span>
+                                        <strong
+                                            class="text-muted text-uppercase small mb-0"
+                                        >Total Qty</strong>
+                                    </div>
                                     <field
                                         name="product_qty"
                                         readonly="not manual_entry"
@@ -392,11 +435,19 @@
                 <group name="packaging" col="1">
                     <div colspan="2" groups="uom.group_uom">
                         <field name="product_uom_ids" invisible="1" />
-                        <span
-                            class="fa fa-archive d-sm-none oe_span_small_icon"
-                            title="Source Location"
+                        <div
+                            class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
                             invisible="not product_uom_ids"
-                        />
+                        >
+                            <span
+                                class="o_barcode_field_icon o_barcode_field_icon--packaging"
+                            >
+                                <i class="fa fa-archive" title="Unit of Barcode" />
+                            </span>
+                            <strong
+                                class="text-muted text-uppercase small mb-0"
+                            >Unit of Barcode</strong>
+                        </div>
                         <field
                             name="product_uom_id"
                             options="{'no_open': True, 'no_create': True}"
