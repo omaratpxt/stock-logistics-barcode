@@ -21,9 +21,9 @@
         <field name="model">stock.location</field>
         <field name="inherit_id" ref="stock.view_location_search" />
         <field name="arch" type="xml">
-            <field name="name" position="after">
+            <search position="inside">
                 <field name="barcode" string="Barcode" />
-            </field>
+            </search>
         </field>
     </record>
 </odoo>
