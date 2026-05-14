@@ -13,8 +13,8 @@
 .oe_stock_barcodes_bottombar {
     bottom: 0;
     background-color: $o-view-background-color;
-    border-width: 1px 0 0 0 solid $border-color;
-    box-shadow: 0 -3px 10px #c9ccd2;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.04);
     height: 60px !important;
 }
 
