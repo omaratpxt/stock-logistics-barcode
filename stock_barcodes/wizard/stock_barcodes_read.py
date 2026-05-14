@@ -197,15 +197,26 @@ class WizStockBarcodesRead(models.AbstractModel):
             else:
                 self.message = f"{message}"
 
+    def _search_location_by_barcode(self, barcode):
+        return self.env["stock.location"].search(
+            Domain.OR(
+                [
+                    Domain("barcode", "=", barcode),
+                    Domain("complete_name", "=", barcode),
+                ]
+            ),
+            limit=1,
+        )
+
     def process_barcode_location_id(self):
-        location = self.env["stock.location"].search(self._barcode_domain(self.barcode))
+        location = self._search_location_by_barcode(self.barcode)
         if location:
             self.location_id = location
             return True
         return False
 
     def process_barcode_location_dest_id(self):
-        location = self.env["stock.location"].search(self._barcode_domain(self.barcode))
+        location = self._search_location_by_barcode(self.barcode)
         if location:
             self.location_dest_id = location
             return True
