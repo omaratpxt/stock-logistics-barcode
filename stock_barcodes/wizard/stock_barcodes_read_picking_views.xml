@@ -135,7 +135,7 @@
                         class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
                     >
                         <span
-                            class="o_barcode_field_icon o_barcode_field_icon--location-dest"
+                            class="o_barcode_field_icon"
                         >
                             <i
                                 class="fa fa-share"

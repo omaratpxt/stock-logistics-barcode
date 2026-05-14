@@ -3,26 +3,32 @@
 
     <div
         t-name="stock_barcodes.MainMenu"
-        class="d-flex flex-column stock-barcodes-main-menu align-items-center p-4"
+        class="d-flex flex-column stock-barcodes-main-menu p-4"
     >
         <div
             class="d-flex o_stock_barcode_header_home justify-content-between align-items-center w-100"
         >
-            <a href="#" t-on-click="mainMenuHome">
-                <i class="fa fa-chevron-left fa-2x" />
+            <a
+                href="#"
+                class="o_stock_barcode_header_back"
+                t-on-click="mainMenuHome"
+            >
+                <i class="fa fa-chevron-left" />
             </a>
-            <h1 class="mb-4">Barcode Scanner</h1>
+            <h1 class="mb-0">Barcode Scanner</h1>
+            <span class="o_stock_barcode_header_spacer" />
         </div>
         <div
-            class="alert alert-info alert-dismissible fade show w-100 fs-3 o_stock_barcode_description"
+            class="alert o_stock_barcode_description w-100 mt-3 mb-0"
             role="alert"
         >
-            Scan a barcode actions
+            <i class="fa fa-barcode me-2" />
+            <span>Scan a barcode action</span>
         </div>
         <div
-            class="d-flex justify-content-center w-100 mt-3 px-2 o_stock_barcode_buttons"
+            class="d-flex justify-content-center w-100 mt-3 o_stock_barcode_buttons"
         >
-            <div class="row w-100">
+            <div class="row w-100 g-3">
                 <t
                     t-foreach="this.barcodeActions"
                     t-as="barcodeAction"
@@ -30,11 +36,15 @@
                 >
                     <div class="col-12 col-md-6">
                         <button
-                            class="btn btn-primary btn-lg w-100 mt-3 text-uppercase"
+                            class="o_stock_barcode_tile btn w-100 d-flex flex-column align-items-center justify-content-center gap-2"
                             t-on-click="() => this.openAction(barcodeAction.id)"
                         >
-                            <span t-attf-class="#{barcodeAction.icon_class} mx-2" />
-                            <t t-out="barcodeAction.name" />
+                            <i
+                                t-attf-class="#{barcodeAction.icon_class or 'fa fa-barcode'} o_stock_barcode_tile_icon"
+                            />
+                            <span class="o_stock_barcode_tile_label">
+                                <t t-out="barcodeAction.name" />
+                            </span>
                         </button>
                     </div>
                 </t>

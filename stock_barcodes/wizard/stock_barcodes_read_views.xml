@@ -72,7 +72,7 @@
                                         class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
                                     >
                                         <span
-                                            class="o_barcode_field_icon o_barcode_field_icon--location"
+                                            class="o_barcode_field_icon"
                                         >
                                             <i
                                                 class="fa fa-map-marker"
@@ -104,7 +104,7 @@
                                         class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
                                     >
                                         <span
-                                            class="o_barcode_field_icon o_barcode_field_icon--package"
+                                            class="o_barcode_field_icon"
                                         >
                                             <i
                                                 class="fa fa-cubes"
@@ -177,7 +177,7 @@
                                         class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
                                     >
                                         <span
-                                            class="o_barcode_field_icon o_barcode_field_icon--product"
+                                            class="o_barcode_field_icon"
                                         >
                                             <i
                                                 class="fa fa-cube"
@@ -216,7 +216,7 @@
                                         class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
                                     >
                                         <span
-                                            class="o_barcode_field_icon o_barcode_field_icon--lot"
+                                            class="o_barcode_field_icon"
                                         >
                                             <i class="fa fa-tags" title="Lot S/N" />
                                         </span>
@@ -272,7 +272,7 @@
                                         class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
                                     >
                                         <span
-                                            class="o_barcode_field_icon o_barcode_field_icon--qty"
+                                            class="o_barcode_field_icon"
                                         >
                                             <i
                                                 class="fa fa-hashtag"
@@ -440,7 +440,7 @@
                             invisible="not product_uom_ids"
                         >
                             <span
-                                class="o_barcode_field_icon o_barcode_field_icon--packaging"
+                                class="o_barcode_field_icon"
                             >
                                 <i class="fa fa-archive" title="Unit of Barcode" />
                             </span>

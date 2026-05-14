@@ -15,38 +15,121 @@
 
 div.o_action_manager {
     &:has(div.stock-barcodes-main-menu) {
-        overflow-y: scroll !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        min-height: 100% !important;
+        overflow-y: auto !important;
         background-color: $o-community-color !important;
+
         @include media-breakpoint-down(sm) {
-            overflow: scroll !important;
+            align-items: stretch;
+            overflow: auto !important;
         }
     }
 }
 
 div.stock-barcodes-main-menu {
     background-color: white !important;
-    margin: 0 10% 5% 10% !important;
-    border-radius: 5px !important;
-    min-height: 90% !important;
+    margin: 2rem auto !important;
+    padding: 2.5rem 2rem !important;
+    border-radius: 1rem !important;
+    width: min(960px, 90%) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18) !important;
+
     @include media-breakpoint-down(sm) {
         margin: 0 !important;
+        border-radius: 0 !important;
+        width: 100% !important;
+        min-height: 100vh !important;
+        box-shadow: none !important;
     }
 
-    img {
-        height: 220px !important;
-    }
+    div.o_stock_barcode_header_home {
+        margin-bottom: 1rem;
 
-    div.o_stock_barcode_functions {
-        margin-top: 5rem;
-        @include media-breakpoint-down(sm) {
-            margin-top: 3.6rem;
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        a.o_stock_barcode_header_back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: background-color 0.15s ease;
+
+            i.fa {
+                font-size: 1.25rem;
+            }
+
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.05);
+            }
+        }
+
+        span.o_stock_barcode_header_spacer {
+            display: inline-block;
+            width: 2.5rem;
         }
     }
 
-    div.o_stock_barcode_buttons {
-        button {
-            padding: 1.5rem 1.5rem !important;
+    div.o_stock_barcode_description {
+        background-color: rgba($o-community-color, 0.08) !important;
+        color: $o-community-color !important;
+        border: none !important;
+        border-radius: 0.75rem !important;
+        font-weight: 500;
+        padding: 0.85rem 1rem;
+
+        i.fa-barcode {
+            font-size: 1.1rem;
         }
+    }
+
+    button.o_stock_barcode_tile {
+        background: white !important;
+        border: 1px solid var(--bs-border-color, #e9ecef) !important;
+        border-radius: 0.75rem !important;
+        padding: 1.75rem 1rem !important;
+        min-height: 8rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease,
+            border-color 0.15s ease;
+        color: #343a40;
+
+        &:hover {
+            transform: translateY(-2px);
+            border-color: $o-community-color !important;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+
+        &:focus {
+            box-shadow: 0 0 0 3px rgba($o-community-color, 0.25) !important;
+            outline: none;
+        }
+    }
+
+    i.o_stock_barcode_tile_icon {
+        font-size: 2.25rem;
+        color: $o-community-color;
+        line-height: 1;
+    }
+
+    span.o_stock_barcode_tile_label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
     }
 
     span.o_stock_barcode_laser {
@@ -62,13 +145,6 @@ div.stock-barcodes-main-menu {
             @include o-position-absolute(35%, -15px, auto, -15px);
             width: 95%;
             margin-left: 6%;
-        }
-    }
-
-    div.o_stock_barcode_header_home {
-        padding-right: 45% !important;
-        @include media-breakpoint-down(sm) {
-            padding-right: 27% !important;
         }
     }
 }
