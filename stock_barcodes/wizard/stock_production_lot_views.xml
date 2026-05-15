@@ -4,9 +4,16 @@
         <field name="name">stock.barcodes.new.lot.form</field>
         <field name="model">wiz.stock.barcodes.new.lot</field>
         <field name="arch" type="xml">
-            <form>
+            <form js_class="stock_barcodes_form">
                 <sheet>
-                    <div class="alert alert-info text-center" role="alert">
+                    <div
+                        class="alert alert-info text-center position-relative"
+                        role="alert"
+                    >
+                        <widget
+                            name="barcode_camera"
+                            class="position-absolute top-0 end-0 m-2 btn btn-link o_barcode_camera_button"
+                        />
                         <p>1 - Scan or input product barcode</p>
                         <p>2 - Scan or input product lot barcode</p>
                     </div>

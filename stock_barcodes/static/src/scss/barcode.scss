@@ -16,13 +16,24 @@ div.o_kanban_renderer {
 div.o_kanban_stock_barcodes {
     padding: 10px !important;
 
-    button.o_stock_mobile_barcode {
+    button.o_stock_mobile_barcode,
+    button.o_barcode_camera_button {
         @include barcode-decoration;
         color: #495057;
     }
 
-    button.o_stock_mobile_barcode:focus {
+    button.o_stock_mobile_barcode:focus,
+    button.o_barcode_camera_button:focus {
         box-shadow: none !important;
+    }
+}
+
+button.o_barcode_camera_button.o_barcode_camera_in_header {
+    color: white !important;
+    min-width: auto;
+
+    i.fa-camera {
+        font-size: 1.75em !important;
     }
 }
 

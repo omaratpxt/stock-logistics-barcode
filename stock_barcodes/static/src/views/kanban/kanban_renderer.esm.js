@@ -5,8 +5,17 @@ import {onPatched, useEffect, useRef} from "@odoo/owl";
 import {useBus, useService} from "@web/core/utils/hooks";
 import {KanbanRenderer} from "@web/views/kanban/kanban_renderer";
 import {isAllowedBarcodeModel} from "../../utils/barcodes_models_utils.esm";
+import {canUseCameraBarcode} from "../../utils/camera_barcode.esm";
+import {BarcodeCameraButton} from "../../components/barcode_camera_button/barcode_camera_button.esm";
 import {patch} from "@web/core/utils/patch";
 import {useHotkey} from "@web/core/hotkeys/hotkey_hook";
+
+patch(KanbanRenderer, {
+    components: {
+        ...KanbanRenderer.components,
+        BarcodeCameraButton,
+    },
+});
 
 patch(KanbanRenderer.prototype, {
     setup() {
@@ -94,6 +103,12 @@ patch(KanbanRenderer.prototype, {
 
         this.showMessageScanProductPackage =
             this.props.list.resModel === "stock.picking";
+    },
+
+    get useMobileCameraBarcode() {
+        return (
+            this.showMessageScanProductPackage && canUseCameraBarcode()
+        );
     },
 
     getNextCard(direction, iCard, cards, iGroup, isGrouped) {

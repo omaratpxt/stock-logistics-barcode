@@ -1,10 +1,27 @@
 # Copyright 2019 Sergio Teruel <sergio.teruel@tecnativa.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
-from odoo import models
+from odoo import api, models
+from odoo.fields import Domain
 
 
 class StockPicking(models.Model):
     _inherit = "stock.picking"
+
+    @api.model
+    def barcode_kanban_search_domain(self, barcode):
+        barcode = (barcode or "").strip()
+        if not barcode:
+            return False
+        domain = Domain.OR(
+            [
+                Domain("name", "ilike", barcode),
+                Domain("origin", "ilike", barcode),
+                Domain("product_id.barcode", "ilike", barcode),
+            ]
+        )
+        if not self.search_count(domain):
+            return False
+        return domain
 
     def _prepare_barcode_wiz_vals(self, option_group):
         vals = {

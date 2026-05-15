@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="stock_barcodes.BarcodeCameraWidget">
+        <BarcodeCameraButton
+            mode="'wizard'"
+            record="props.record"
+            className="props.class or ''"
+        />
+    </t>
+
+</templates>

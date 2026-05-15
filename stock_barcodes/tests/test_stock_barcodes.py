@@ -281,3 +281,41 @@ class TestStockBarcodes(TestCommonStockBarcodes):
             {"option_group_id": option_group_id.id, "step": 1}
         )
         self.assertTrue(self.wiz_scan_inv.show_form_scan)
+
+    def test_picking_barcode_kanban_search_domain(self):
+        customer_loc = self.env.ref("stock.stock_location_customers")
+        picking = self.StockPicking.create(
+            {
+                "picking_type_id": self.env.ref("stock.picking_type_out").id,
+                "location_id": self.stock_location.id,
+                "location_dest_id": customer_loc.id,
+                "move_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": self.product_wo_tracking.name,
+                            "product_id": self.product_wo_tracking.id,
+                            "product_uom_qty": 1,
+                            "location_id": self.stock_location.id,
+                            "location_dest_id": customer_loc.id,
+                        },
+                    )
+                ],
+            }
+        )
+        picking.action_confirm()
+        domain = self.env["stock.picking"].barcode_kanban_search_domain(
+            picking.name
+        )
+        self.assertTrue(domain)
+        self.assertIn(picking, self.env["stock.picking"].search(domain))
+        domain_product = self.env["stock.picking"].barcode_kanban_search_domain(
+            self.product_wo_tracking.barcode
+        )
+        self.assertTrue(domain_product)
+        self.assertIn(picking, self.env["stock.picking"].search(domain_product))
+        self.assertFalse(
+            self.env["stock.picking"].barcode_kanban_search_domain("no-match-xyz")
+        )
+        self.assertFalse(self.env["stock.picking"].barcode_kanban_search_domain(""))

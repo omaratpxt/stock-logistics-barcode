@@ -3,10 +3,12 @@ import {browser} from "@web/core/browser/browser";
 import {markup} from "@odoo/owl";
 import {registry} from "@web/core/registry";
 import {useService} from "@web/core/utils/hooks";
+import {BarcodeCameraButton} from "../../components/barcode_camera_button/barcode_camera_button.esm";
 
 const {Component, onWillStart, useEffect} = owl;
 
 export class StockBarcodesMainMenu extends Component {
+    static components = {BarcodeCameraButton};
     setup() {
         super.setup();
         this.actionService = useService("action");
@@ -33,7 +35,7 @@ export class StockBarcodesMainMenu extends Component {
             }
         };
         useEffect(() => {
-            busService.addChannel("stock_barcodes_main_menu");
+            busService.addChannel("stock_barcodes_scan");
             busService.subscribe(
                 "actions_main_menu_barcode",
                 handleActionMainMenuBarcode
@@ -43,7 +45,7 @@ export class StockBarcodesMainMenu extends Component {
                     "actions_main_menu_barcode",
                     handleActionMainMenuBarcode
                 );
-                busService.deleteChannel("stock_barcodes_main_menu");
+                busService.deleteChannel("stock_barcodes_scan");
             };
         });
     }

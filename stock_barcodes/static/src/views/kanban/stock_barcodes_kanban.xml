@@ -11,8 +11,15 @@
                 >product</b> or a <b>lot</b> to filter your records</span>
                 <span t-else="">Scan a <b>transfer</b> or a <b
                 >product</b> to filter your records</span>
+                <BarcodeCameraButton
+                    t-if="useMobileCameraBarcode"
+                    mode="'kanban'"
+                    searchModel="env.searchModel"
+                    className="'o_stock_mobile_barcode btn ms-2'"
+                />
                 <button
-                    class="o_stock_mobile_barcode btn"
+                    t-if="!useMobileCameraBarcode"
+                    class="o_stock_mobile_barcode btn ms-2"
                     t-on-click="openBarcodeScanner"
                 >
                     <i class="fa fa-barcode" />

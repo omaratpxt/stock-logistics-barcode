@@ -33,6 +33,10 @@
                                     class="fa fa-barcode fa-2x mt-2 mx-3"
                                     title="Barcode"
                                 />
+                                <widget
+                                    name="barcode_camera"
+                                    class="btn btn-link text-white p-0 ms-2 o_barcode_camera_in_header"
+                                />
                             </div>
                         </div>
                         <field name="message_type" invisible="1" />

@@ -4,7 +4,6 @@
 import {onMounted, useEffect} from "@odoo/owl";
 import {FormController} from "@web/views/form/form_controller";
 import {useService} from "@web/core/utils/hooks";
-
 export class StockBarcodesFormController extends FormController {
     setup() {
         super.setup();
