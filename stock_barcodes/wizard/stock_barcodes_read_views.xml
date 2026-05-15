@@ -171,8 +171,8 @@
                                     />
                                 </div>
                             </group>
-                            <group col="2">
-                                <div class="m-0" colspan="2">
+                            <group name="product" col="1">
+                                <div class="mt-1" colspan="2">
                                     <div
                                         class="o_barcode_field_header d-flex align-items-center gap-2 mb-1"
                                     >
@@ -193,7 +193,8 @@
                                         options="{'no_create': True, 'no_open': True}"
                                         readonly="not manual_entry"
                                         force_save="1"
-                                        style="width:80%"
+                                        nolabel="1"
+                                        style="width:90%"
                                         class="h5"
                                     />
                                     <button
