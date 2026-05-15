@@ -23,7 +23,10 @@ div.o_action_manager {
         background-color: $o-community-color !important;
 
         @include media-breakpoint-down(sm) {
-            align-items: stretch;
+            // flex-start so the card keeps intrinsic height; stretch forces 100vh
+            // and clips content outside the white background
+            align-items: flex-start;
+            justify-content: flex-start;
             overflow: auto !important;
         }
     }
@@ -37,12 +40,16 @@ div.stock-barcodes-main-menu {
     width: 90% !important;
     max-width: 960px !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18) !important;
+    height: auto;
+    min-height: 0;
+    flex-shrink: 0;
 
     @include media-breakpoint-down(sm) {
         margin: 0 !important;
         border-radius: 0 !important;
         width: 100% !important;
-        min-height: 100vh !important;
+        min-height: auto !important;
+        height: auto !important;
         box-shadow: none !important;
     }
 
