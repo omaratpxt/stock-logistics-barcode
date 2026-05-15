@@ -81,6 +81,17 @@
         }
     }
 
+    .o_input_dropdown {
+        .o_dropdown_button {
+            display: flex !important;
+            align-items: center !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            height: auto !important;
+            transform: none !important;
+        }
+    }
+
     div[name="candidate_picking_ids"] {
         div.oe_kanban_color_alert {
             padding: 0 !important;
