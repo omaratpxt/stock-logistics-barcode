@@ -137,7 +137,7 @@ div.stock_barcodes_action_kanban {
 .o_barcode_field_header {
     strong {
         letter-spacing: 0.04em;
-        font-weight: 600;
+        font-weight: 500;
     }
 }
 
@@ -188,7 +188,7 @@ div.stock_barcodes_action_kanban {
 
             .o_field_widget {
                 font-size: 1.05rem;
-                font-weight: 500;
+                font-weight: 400;
                 color: #111827;
 
                 input,
@@ -199,7 +199,7 @@ div.stock_barcodes_action_kanban {
                     border-radius: 0.5rem !important;
                     box-shadow: none !important;
                     color: #111827 !important;
-                    font-weight: 500;
+                    font-weight: 400;
                     transition: background-color 0.15s ease,
                         border-color 0.15s ease;
 
@@ -231,7 +231,7 @@ div.stock_barcodes_action_kanban {
     bottom: 0;
     z-index: 10;
     background: white;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid #efefef;
     box-shadow: none;
     padding: 0;
     gap: 0;
@@ -241,7 +241,7 @@ div.stock_barcodes_action_kanban {
         border-radius: 0 !important;
         border: none !important;
         font-size: 0.875rem !important;
-        font-weight: 600 !important;
+        font-weight: 500 !important;
         letter-spacing: 0.02em;
         padding: 0.95rem 1rem !important;
         box-shadow: none !important;
@@ -256,7 +256,7 @@ div.stock_barcodes_action_kanban {
 
         span.fs-1 {
             font-size: 0.875rem !important;
-            font-weight: 600;
+            font-weight: 500;
         }
 
         &.btn-secondary,
@@ -289,7 +289,8 @@ div.stock_barcodes_action_kanban {
         }
 
         &:not(:last-child) {
-            border-right: 1px solid #e5e7eb !important;
+            border-right: 1px solid #efefef !important;
+            margin: 0 0 0 0 !important;
         }
     }
 }
