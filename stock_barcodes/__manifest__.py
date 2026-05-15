@@ -23,6 +23,7 @@
         # Keep order
         "data/stock_barcodes_action.xml",
         "data/stock_barcodes_option.xml",
+        "data/stock_barcodes_location_prefix.xml",
         "views/stock_barcodes_menu.xml",
         # Reports
         "reports/barcode_actions_report.xml",

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="0">
+    <record
+        id="stock_barcodes_option_group_operation"
+        model="stock.barcodes.option.group"
+    >
+        <field name="location_barcode_prefix">LOC</field>
+    </record>
+    <record
+        id="stock_barcodes_option_group_inventory"
+        model="stock.barcodes.option.group"
+    >
+        <field name="location_barcode_prefix">LOC</field>
+    </record>
+    <record
+        id="stock_barcodes_option_group_picking_out"
+        model="stock.barcodes.option.group"
+    >
+        <field name="location_barcode_prefix">LOC</field>
+    </record>
+    <record
+        id="stock_barcodes_option_group_picking_in"
+        model="stock.barcodes.option.group"
+    >
+        <field name="location_barcode_prefix">LOC</field>
+    </record>
+    <record
+        id="stock_barcodes_option_group_picking_internal"
+        model="stock.barcodes.option.group"
+    >
+        <field name="location_barcode_prefix">LOC</field>
+    </record>
+</odoo>

@@ -426,6 +426,85 @@ class WizStockBarcodesRead(models.AbstractModel):
                 return True
         return False
 
+    def _process_barcode_after_scan_success(self):
+        if not self.check_option_required():
+            return False
+        if self.is_manual_confirm or self.manual_entry:
+            self._set_messagge_info("info", self.env._("Review and confirm"))
+            return False
+        return self.action_confirm()
+
+    def _process_barcode_not_found(self, message, title=None):
+        self.play_sounds(False)
+        self._set_messagge_info("not_found", message)
+        self.display_notification(
+            self.barcode,
+            message_type="danger",
+            title=title or self.env._("Barcode not found"),
+            sticky=False,
+        )
+        return False
+
+    def _process_barcode_with_prefix_routing(self, location_prefix):
+        """LOC* updates location_id; other barcodes try product then lot."""
+        self._set_messagge_info("success", self.env._("OK"))
+        if self.barcode.startswith(location_prefix):
+            if self.process_barcode_location_id():
+                self.play_sounds(True)
+                return self._process_barcode_after_scan_success()
+            return self._process_barcode_not_found(
+                self.env._("Location not found"),
+                title=self.env._("Location not found"),
+            )
+        if self.process_barcode_product_id():
+            self.play_sounds(True)
+            return self._process_barcode_after_scan_success()
+        if self.product_id and self.product_id.tracking != "none":
+            if self.process_barcode_lot_id():
+                self.play_sounds(True)
+                return self._process_barcode_after_scan_success()
+        if self.option_group_id.ignore_filled_fields:
+            message = self.env._("Barcode not found or field already filled")
+        else:
+            message = self.env._("Barcode not found with this screen values")
+        return self._process_barcode_not_found(message)
+
+    def _process_barcode_option_loop(self):
+        """Legacy scan routing when no location barcode prefix is configured."""
+        options = self.option_group_id.option_ids
+        barcode_found = False
+        options_to_scan = options.filtered("to_scan")
+        options_required = options.filtered("required")
+        options_to_scan = options_to_scan.filtered(lambda op: op.step == self.step)
+        package_fields = ("package_id", "result_package_id")
+        options_to_scan = options_to_scan.filtered(
+            lambda op: op.field_name not in package_fields
+        )
+        for option in options_to_scan:
+            if (
+                self.option_group_id.ignore_filled_fields
+                and option in options_required
+                and getattr(self, option.field_name, False)
+            ):
+                continue
+            option_func = getattr(self, f"process_barcode_{option.field_name}", False)
+            if option_func:
+                res = option_func()
+                if res:
+                    barcode_found = True
+                    self.play_sounds(barcode_found)
+                    break
+                if self.message_type != "success":
+                    self.play_sounds(False)
+                    return False
+        if not barcode_found:
+            if self.option_group_id.ignore_filled_fields:
+                message = self.env._("Barcode not found or field already filled")
+            else:
+                message = self.env._("Barcode not found with this screen values")
+            return self._process_barcode_not_found(message)
+        return self._process_barcode_after_scan_success()
+
     def process_barcode(self, barcode):
         if not self:
             barcode_action = self.env["stock.barcodes.action"].search(
@@ -448,105 +527,12 @@ class WizStockBarcodesRead(models.AbstractModel):
                 },
             )
         else:
-            self._set_messagge_info("success", self.env._("OK"))
-            options = self.option_group_id.option_ids
-            barcode_found = False
-            options_to_scan = options.filtered("to_scan")
-            options_required = options.filtered("required")
-            options_to_scan = options_to_scan.filtered(lambda op: op.step == self.step)
+            self.barcode = self._clean_barcode_scanned(barcode)
             location_prefix = self.option_group_id.sudo().location_barcode_prefix
-            location_fields = ("location_id", "location_dest_id")
-            if location_prefix and barcode.startswith(location_prefix):
-                location_options = options.filtered(
-                    lambda op: op.step == self.step
-                    and op.field_name in location_fields
-                ).sorted("sequence")
-                prefix_scan_options = location_options.filtered("to_scan")
-                if not prefix_scan_options:
-                    prefix_scan_options = location_options.filtered(
-                        lambda op: op.field_name == "location_id"
-                    )
-                for option in prefix_scan_options:
-                    if (
-                        self.option_group_id.ignore_filled_fields
-                        and option in options_required
-                        and getattr(self, option.field_name, False)
-                    ):
-                        continue
-                    option_func = getattr(
-                        self, f"process_barcode_{option.field_name}", False
-                    )
-                    if option_func:
-                        res = option_func()
-                        if res:
-                            barcode_found = True
-                            self.play_sounds(True)
-                            break
-                        if self.message_type != "success":
-                            self.play_sounds(False)
-                            return False
-                if not barcode_found:
-                    self.play_sounds(False)
-                    self._set_messagge_info(
-                        "not_found",
-                        self.env._("Location not found"),
-                    )
-                    self.display_notification(
-                        self.barcode,
-                        message_type="danger",
-                        title=self.env._("Location not found"),
-                        sticky=False,
-                    )
-                    return False
-            else:
-                if location_prefix:
-                    options_to_scan = options_to_scan.filtered(
-                        lambda op: op.field_name not in location_fields
-                    )
-                for option in options_to_scan:
-                    if (
-                        self.option_group_id.ignore_filled_fields
-                        and option in options_required
-                        and getattr(self, option.field_name, False)
-                    ):
-                        continue
-                    option_func = getattr(
-                        self, f"process_barcode_{option.field_name}", False
-                    )
-                    if option_func:
-                        res = option_func()
-                        if res:
-                            barcode_found = True
-                            self.play_sounds(barcode_found)
-                            break
-                        elif self.message_type != "success":
-                            self.play_sounds(False)
-                            return False
-            if not barcode_found:
-                self.play_sounds(barcode_found)
-                if self.option_group_id.ignore_filled_fields:
-                    self._set_messagge_info(
-                        "not_found",
-                        self.env._("Barcode not found or field already filled"),
-                    )
-                else:
-                    self._set_messagge_info(
-                        "not_found",
-                        self.env._("Barcode not found with this screen values"),
-                    )
-                self.display_notification(
-                    self.barcode,
-                    message_type="danger",
-                    title=self.env._("Barcode not found"),
-                    sticky=False,
-                )
-                return False
-            if not self.check_option_required():
-                return False
-            if self.is_manual_confirm or self.manual_entry:
-                self._set_messagge_info("info", self.env._("Review and confirm"))
-                return False
-            return self.action_confirm()
+            if location_prefix:
+                return self._process_barcode_with_prefix_routing(location_prefix)
+            self._set_messagge_info("success", self.env._("OK"))
+            return self._process_barcode_option_loop()
 
     def check_option_required(self):
         options = self.option_group_id.option_ids

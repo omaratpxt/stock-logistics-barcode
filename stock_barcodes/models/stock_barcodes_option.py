@@ -110,9 +110,11 @@ class StockBarcodesOptionGroup(models.Model):
     location_barcode_prefix = fields.Char(
         string="Location barcode prefix",
         groups="stock.group_stock_manager",
-        help="If set, any scanned barcode starting with this prefix is routed "
-        "to the location fields only; any other barcode skips the location "
-        "fields. Leave empty to disable prefix-based routing.",
+        help="If set, scans starting with this prefix always update the source "
+        "location (location_id), on any step. Any other scan tries the product "
+        "first, then the lot when the product has tracking. Packages are only "
+        "scanned when their field is focused. Leave empty to use the classic "
+        "option-by-option scan sequence.",
     )
 
     def get_option_value(self, field_name, attribute):
