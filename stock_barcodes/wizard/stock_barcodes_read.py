@@ -455,35 +455,73 @@ class WizStockBarcodesRead(models.AbstractModel):
             options_required = options.filtered("required")
             options_to_scan = options_to_scan.filtered(lambda op: op.step == self.step)
             location_prefix = self.option_group_id.sudo().location_barcode_prefix
-            if location_prefix:
-                location_fields = ("location_id", "location_dest_id")
-                if barcode.startswith(location_prefix):
-                    options_to_scan = options_to_scan.filtered(
-                        lambda op: op.field_name in location_fields
+            location_fields = ("location_id", "location_dest_id")
+            if location_prefix and barcode.startswith(location_prefix):
+                location_options = options.filtered(
+                    lambda op: op.step == self.step
+                    and op.field_name in location_fields
+                ).sorted("sequence")
+                prefix_scan_options = location_options.filtered("to_scan")
+                if not prefix_scan_options:
+                    prefix_scan_options = location_options.filtered(
+                        lambda op: op.field_name == "location_id"
                     )
-                else:
+                for option in prefix_scan_options:
+                    if (
+                        self.option_group_id.ignore_filled_fields
+                        and option in options_required
+                        and getattr(self, option.field_name, False)
+                    ):
+                        continue
+                    option_func = getattr(
+                        self, f"process_barcode_{option.field_name}", False
+                    )
+                    if option_func:
+                        res = option_func()
+                        if res:
+                            barcode_found = True
+                            self.play_sounds(True)
+                            break
+                        if self.message_type != "success":
+                            self.play_sounds(False)
+                            return False
+                if not barcode_found:
+                    self.play_sounds(False)
+                    self._set_messagge_info(
+                        "not_found",
+                        self.env._("Location not found"),
+                    )
+                    self.display_notification(
+                        self.barcode,
+                        message_type="danger",
+                        title=self.env._("Location not found"),
+                        sticky=False,
+                    )
+                    return False
+            else:
+                if location_prefix:
                     options_to_scan = options_to_scan.filtered(
                         lambda op: op.field_name not in location_fields
                     )
-            for option in options_to_scan:
-                if (
-                    self.option_group_id.ignore_filled_fields
-                    and option in options_required
-                    and getattr(self, option.field_name, False)
-                ):
-                    continue
-                option_func = getattr(
-                    self, f"process_barcode_{option.field_name}", False
-                )
-                if option_func:
-                    res = option_func()
-                    if res:
-                        barcode_found = True
-                        self.play_sounds(barcode_found)
-                        break
-                    elif self.message_type != "success":
-                        self.play_sounds(False)
-                        return False
+                for option in options_to_scan:
+                    if (
+                        self.option_group_id.ignore_filled_fields
+                        and option in options_required
+                        and getattr(self, option.field_name, False)
+                    ):
+                        continue
+                    option_func = getattr(
+                        self, f"process_barcode_{option.field_name}", False
+                    )
+                    if option_func:
+                        res = option_func()
+                        if res:
+                            barcode_found = True
+                            self.play_sounds(barcode_found)
+                            break
+                        elif self.message_type != "success":
+                            self.play_sounds(False)
+                            return False
             if not barcode_found:
                 self.play_sounds(barcode_found)
                 if self.option_group_id.ignore_filled_fields:

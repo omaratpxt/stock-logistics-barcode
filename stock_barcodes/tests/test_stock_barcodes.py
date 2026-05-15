@@ -17,6 +17,145 @@ class TestStockBarcodes(TestCommonStockBarcodes):
         self.action_barcode_scanned(self.wiz_scan, "8411322222568")
         self.assertEqual(self.wiz_scan.location_id, self.location_1)
 
+    def test_location_search_view_barcode_filter_domain(self):
+        view = self.env.ref("stock_barcodes.stock_location_search_inherit")
+        arch = view.arch
+        self.assertIn("filter_domain", arch)
+        self.assertIn("barcode", arch)
+        self.assertIn("complete_name", arch)
+
+    def test_wizard_scan_location_with_prefix_routing(self):
+        location = self.StockLocation.create(
+            {
+                "name": "Prefix location",
+                "usage": "internal",
+                "location_id": self.stock_location.id,
+                "barcode": "LOC0000000004",
+            }
+        )
+        option_group = self.env["stock.barcodes.option.group"].create(
+            {
+                "name": "prefix routing test",
+                "location_barcode_prefix": "LOC",
+                "option_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "step": 1,
+                            "name": "Location",
+                            "field_name": "location_id",
+                            "to_scan": False,
+                            "required": True,
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "step": 2,
+                            "name": "Product",
+                            "field_name": "product_id",
+                            "to_scan": True,
+                            "required": True,
+                        },
+                    ),
+                ],
+            }
+        )
+        wiz = self.WizScanReadPicking.create(
+            {"option_group_id": option_group.id, "step": 1}
+        )
+        self.action_barcode_scanned(wiz, "LOC0000000004")
+        self.assertEqual(wiz.location_id, location)
+
+    def test_wizard_scan_location_dest_with_prefix_routing(self):
+        location = self.StockLocation.create(
+            {
+                "name": "Prefix dest location",
+                "usage": "internal",
+                "location_id": self.stock_location.id,
+                "barcode": "LOC0000000099",
+            }
+        )
+        option_group = self.env["stock.barcodes.option.group"].create(
+            {
+                "name": "prefix dest routing test",
+                "location_barcode_prefix": "LOC",
+                "option_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "step": 1,
+                            "name": "Dest.",
+                            "field_name": "location_dest_id",
+                            "to_scan": True,
+                            "required": False,
+                            "sequence": 10,
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "step": 2,
+                            "name": "Product",
+                            "field_name": "product_id",
+                            "to_scan": True,
+                            "required": True,
+                            "sequence": 20,
+                        },
+                    ),
+                ],
+            }
+        )
+        wiz = self.WizScanReadPicking.create(
+            {"option_group_id": option_group.id, "step": 1}
+        )
+        self.action_barcode_scanned(wiz, "LOC0000000099")
+        self.assertEqual(wiz.location_dest_id, location)
+        self.assertFalse(wiz.location_id)
+
+    def test_wizard_scan_product_skips_location_with_prefix(self):
+        option_group = self.env["stock.barcodes.option.group"].create(
+            {
+                "name": "prefix product routing test",
+                "location_barcode_prefix": "LOC",
+                "option_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "step": 1,
+                            "name": "Location",
+                            "field_name": "location_id",
+                            "to_scan": False,
+                            "required": True,
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "step": 2,
+                            "name": "Product",
+                            "field_name": "product_id",
+                            "to_scan": True,
+                            "required": True,
+                        },
+                    ),
+                ],
+            }
+        )
+        wiz = self.WizScanReadPicking.create(
+            {"option_group_id": option_group.id, "step": 2}
+        )
+        wiz.location_id = self.location_1
+        self.action_barcode_scanned(wiz, "8480000723208")
+        self.assertEqual(wiz.product_id, self.product_wo_tracking)
+        self.assertEqual(wiz.location_id, self.location_1)
+
     def test_wizard_scan_product(self):
         self.wiz_scan.location_id = self.location_1
         self.wiz_scan.action_show_step()
