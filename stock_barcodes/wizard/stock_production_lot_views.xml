@@ -10,10 +10,12 @@
                         class="alert alert-info text-center position-relative"
                         role="alert"
                     >
-                        <widget
-                            name="barcode_camera"
-                            class="position-absolute top-0 end-0 m-2 btn btn-link o_barcode_camera_button"
-                        />
+                        <div class="btn-group position-absolute top-0 end-0 m-2">
+                            <widget
+                                name="barcode_camera"
+                                class="btn btn-link o_barcode_camera_button"
+                            />
+                        </div>
                         <p>1 - Scan or input product barcode</p>
                         <p>2 - Scan or input product lot barcode</p>
                     </div>
